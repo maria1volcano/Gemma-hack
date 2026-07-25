@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>KidGuard mascot - preview harness</title>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+        color: #16233f;
+        background: radial-gradient(circle at 20% 10%, #fdfaf4, #e9eef7 60%, #dde5f2);
+      }
+      header {
+        padding: 18px 24px 10px;
+      }
+      h1 {
+        margin: 0 0 4px;
+        font-size: 19px;
+      }
+      p.sub {
+        margin: 0;
+        font-size: 13px;
+        color: #5b6a86;
+      }
+      .panel {
+        margin: 14px 24px;
+        padding: 14px 16px;
+        max-width: 720px;
+        background: rgba(255, 255, 255, 0.86);
+        border: 1px solid rgba(30, 60, 120, 0.14);
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(20, 40, 80, 0.08);
+      }
+      .panel h2 {
+        margin: 0 0 10px;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #62719026;
+        color: #627190;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+      }
+      button {
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 13px;
+        border-radius: 10px;
+        border: 1.5px solid rgba(30, 60, 120, 0.18);
+        background: #fff;
+        color: #1d2c4c;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: #3a6ad4;
+        color: #24417f;
+      }
+      button.primary {
+        background: #3a6ad4;
+        border-color: #3a6ad4;
+        color: #fff;
+      }
+      input[type="text"] {
+        font: inherit;
+        font-size: 13px;
+        padding: 8px 10px;
+        min-width: 260px;
+        border-radius: 10px;
+        border: 1.5px solid rgba(30, 60, 120, 0.18);
+      }
+      code {
+        background: rgba(30, 60, 120, 0.08);
+        padding: 1px 5px;
+        border-radius: 5px;
+        font-size: 12px;
+      }
+      #readout {
+        font-family: "Cascadia Mono", Consolas, monospace;
+        font-size: 12.5px;
+        white-space: pre-wrap;
+        line-height: 1.5;
+      }
+      #errors {
+        margin-top: 8px;
+        font-family: "Cascadia Mono", Consolas, monospace;
+        font-size: 12.5px;
+        color: #a3331f;
+        white-space: pre-wrap;
+      }
+      #errors:empty::before {
+        content: "no errors";
+        color: #3f8b57;
+      }
+      /* Fake page furniture so `point` has something real to aim at. */
+      #fake-target {
+        position: fixed;
+        left: 120px;
+        top: 320px;
+        width: 190px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 2.5px dashed #d9534f;
+        background: rgba(255, 255, 255, 0.95);
+        color: #7a2b26;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: grab;
+        user-select: none;
+        z-index: 5;
+        box-shadow: 0 8px 20px rgba(120, 30, 30, 0.16);
+      }
+      #fake-target small {
+        display: block;
+        font-weight: 500;
+        color: #96625f;
+      }
+      #fake-password {
+        margin-top: 8px;
+        width: 100%;
+        font: inherit;
+        font-size: 12px;
+        padding: 5px 7px;
+        border-radius: 7px;
+        border: 1px solid #d9b7b5;
+      }
+      .spacer {
+        height: 900px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>KidGuard mascot - preview harness</h1>
+      <p class="sub">
+        Iterate on the mascot without reloading the Chrome extension. This page stubs Person B's seam
+        (<code>#kidguard-mascot-host</code> in a shadow root, <code>window.__KIDGUARD__</code>,
+        <code>chrome.runtime.getURL</code>) and loads the very same scripts the extension loads.
+        Heads-up: port 8765 is also matched by the extension's content scripts, so if KidGuard is
+        loaded in this browser you will see <b>two</b> mascots here — disable the extension (or open
+        this file directly from disk) while iterating.
+      </p>
+    </header>
+
+    <div class="panel">
+      <h2>Moods (fires the real <code>kidguard:mascot</code> event on <code>document</code>)</h2>
+      <div class="row">
+        <button data-mood="idle">idle</button>
+        <button data-mood="worry">worry</button>
+        <button data-mood="happy">happy</button>
+        <button data-mood="point">point (uses the red box)</button>
+        <button id="btn-window-event">same, via window + {action,…} payload</button>
+        <button id="btn-bad">unknown mood (must fall back to idle)</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Public API - <code>window.KidGuardMascot</code></h2>
+      <div class="row">
+        <input id="msg" type="text" value="Never type your password on this page." />
+        <button id="btn-msg" class="primary">setMessage()</button>
+        <button id="btn-point-el">pointToElement(#fake-target)</button>
+        <button id="btn-point-xy">pointToCoordinates(centre)</button>
+        <button id="btn-show">show()</button>
+        <button id="btn-hide">hide()</button>
+        <button id="btn-reset">reset()</button>
+        <button id="btn-destroy">destroy()</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Demo scenarios</h2>
+      <div class="row">
+        <button data-scenario="safe">Safe page -> happy</button>
+        <button data-scenario="suspicious">Suspicious page -> worry</button>
+        <button data-scenario="highlight">Safe button -> point</button>
+        <button data-scenario="password">Password field -> worry + point</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>State</h2>
+      <div id="readout">booting…</div>
+      <div id="errors"></div>
+    </div>
+
+    <div id="fake-target">
+      Drag me: fake highlight target
+      <small>point / pointToElement aim here</small>
+      <input id="fake-password" type="password" placeholder="password" />
+    </div>
+
+    <div class="spacer"></div>
+
+    <script>
+      /* ---------------------------------------------------------------- shims */
+      // Outside the extension there is no chrome.runtime: resolve to relative
+      // paths so lib/, mascot/ and assets/ load straight from disk / 8765.
+      if (typeof window.chrome === "undefined" || !window.chrome.runtime) {
+        window.chrome = window.chrome || {};
+        window.chrome.runtime = { getURL: function (p) { return p; } };
+      }
+
+      // Stub of Person B's seam: same ids, same class names, same shadow root.
+      (function () {
+        var root = document.createElement("div");
+        root.id = "kidguard-root";
+        root.style.cssText =
+          "position:fixed;top:0;left:0;width:0;height:0;z-index:2147483000;pointer-events:none;";
+        document.documentElement.appendChild(root);
+        var shadow = root.attachShadow({ mode: "open" });
+
+        var style = document.createElement("style");
+        style.textContent =
+          ".kg-stage{position:fixed;inset:0;pointer-events:none}" +
+          ".kg-mascot-host{position:fixed;top:0;left:0;width:104px;height:104px;pointer-events:none;" +
+          "transition:transform 420ms cubic-bezier(.2,1.1,.4,1)}" +
+          ".kg-placeholder{width:88px;height:88px;margin:8px;border-radius:46% 54% 52% 48%/52% 46% 54% 48%;" +
+          "background:radial-gradient(circle at 35% 30%,#9be8ff,#4aa8ff 70%)}";
+        shadow.appendChild(style);
+
+        var stage = document.createElement("div");
+        stage.className = "kg-stage";
+        shadow.appendChild(stage);
+
+        var host = document.createElement("div");
+        host.className = "kg-mascot-host";
+        host.id = "kidguard-mascot-host";
+        stage.appendChild(host);
+
+        var placeholder = document.createElement("div");
+        placeholder.className = "kg-placeholder";
+        placeholder.setAttribute("data-kidguard-placeholder", "true");
+        host.appendChild(placeholder);
+
+        var subs = [];
+        var lastRect = null;
+
+        function spot() {
+          return {
+            x: Math.max(16, window.innerWidth - 200),
+            y: Math.max(16, window.innerHeight - 230)
+          };
+        }
+        function place(x, y) {
+          host.style.transform = "translate(" + Math.round(x) + "px," + Math.round(y) + "px)";
+        }
+        place(spot().x, spot().y);
+        window.addEventListener("resize", function () {
+          var s = spot();
+          place(s.x, s.y);
+        });
+
+        window.__KIDGUARD__ = {
+          onMascot: function (cb) {
+            if (typeof cb !== "function") return function () {};
+            subs.push(cb);
+            return function () {
+              subs = subs.filter(function (f) {
+                return f !== cb;
+              });
+            };
+          },
+          getHighlightRect: function () {
+            return lastRect;
+          },
+          getMascotHost: function () {
+            return host;
+          },
+          setMascotRendererReady: function () {
+            var b = host.querySelector('[data-kidguard-placeholder="true"]');
+            if (b) b.remove();
+            log("setMascotRendererReady() called by the renderer");
+          }
+        };
+
+        // Exactly what content.js does: move the host, then dispatch on document.
+        window.__PREVIEW_EMIT__ = function (detail, onWindow) {
+          if (detail.targetRect) lastRect = detail.targetRect;
+          if (typeof detail.x === "number") place(detail.x, detail.y);
+          var ev = new CustomEvent("kidguard:mascot", { detail: detail });
+          (onWindow ? window : document).dispatchEvent(ev);
+          if (!onWindow) {
+            subs.forEach(function (cb) {
+              try {
+                cb(detail);
+              } catch (e) {}
+            });
+          }
+        };
+        window.__PREVIEW_SPOT__ = spot;
+      })();
+
+      var errorsEl = document.getElementById("errors");
+      var logLines = [];
+      function log(line) {
+        logLines.unshift(new Date().toLocaleTimeString() + "  " + line);
+        logLines = logLines.slice(0, 6);
+        if (typeof render === "function") render();
+      }
+      function fail(line) {
+        errorsEl.textContent = (errorsEl.textContent ? errorsEl.textContent + "\n" : "") + line;
+      }
+      window.addEventListener("error", function (e) {
+        fail("JS error: " + (e && e.message ? e.message : e) + (e.filename ? "  (" + e.filename + ")" : ""));
+      });
+    </script>
+
+    <!-- Same load order the manifest uses: Three.js, loader, then the mascot. -->
+    <script src="lib/three.min.js"></script>
+    <script src="lib/GLTFLoader.js"></script>
+    <script src="mascot/mascot-fallback.js"></script>
+    <script src="mascot/mascot-scene.js"></script>
+    <script src="mascot/mascot-controller.js"></script>
+    <script src="mascot/mascot-events.js"></script>
+
+    <script>
+      var readout = document.getElementById("readout");
+      var target = document.getElementById("fake-target");
+
+      function render() {
+        var K = window.KidGuardMascot;
+        var st = K ? K.state : null;
+        var r = target.getBoundingClientRect();
+        readout.textContent =
+          "THREE            : " + (window.THREE ? "r" + window.THREE.REVISION : "MISSING") + "\n" +
+          "GLTFLoader       : " + (window.THREE && typeof window.THREE.GLTFLoader === "function" ? "global ok" : "MISSING") + "\n" +
+          "renderer ready   : " + (st ? st.ready : false) + "\n" +
+          "character        : " + (st ? (st.usingGlb ? "assets/mascot.glb" : "procedural capybara") : "-") + "\n" +
+          "mood             : " + (st ? st.mood : "-") + "\n" +
+          "hidden/minimised : " + (st ? st.hidden + " / " + st.minimised : "-") + "\n" +
+          "scene status     : " + (window.KidGuardMascotNS && window.KidGuardMascotNS.lastSceneStatus ? window.KidGuardMascotNS.lastSceneStatus : "-") + "\n" +
+          "target rect      : " + Math.round(r.left) + "," + Math.round(r.top) + " " + Math.round(r.width) + "x" + Math.round(r.height) + "\n" +
+          (logLines.length ? "\n" + logLines.join("\n") : "");
+        if (st && st.error) fail(st.error);
+      }
+
+      if (!window.THREE) fail("Three.js did not load from lib/three.min.js");
+      if (window.THREE && typeof window.THREE.GLTFLoader !== "function") {
+        fail("THREE.GLTFLoader global missing from lib/GLTFLoader.js");
+      }
+      if (!window.KidGuardMascot) fail("window.KidGuardMascot was not created");
+
+      function rectOf(el) {
+        var r = el.getBoundingClientRect();
+        return { top: r.top, left: r.left, width: r.width, height: r.height };
+      }
+
+      function emit(mood, withTarget, onWindow, extra) {
+        var s = window.__PREVIEW_SPOT__();
+        var detail = { mood: mood, x: s.x, y: s.y, targetRect: withTarget ? rectOf(target) : null };
+        if (extra) for (var k in extra) detail[k] = extra[k];
+        window.__PREVIEW_EMIT__(detail, !!onWindow);
+        log("emit " + JSON.stringify({ mood: mood, target: !!withTarget, window: !!onWindow }));
+      }
+
+      Array.prototype.forEach.call(document.querySelectorAll("[data-mood]"), function (b) {
+        b.addEventListener("click", function () {
+          emit(b.getAttribute("data-mood"), b.getAttribute("data-mood") === "point");
+        });
+      });
+
+      document.getElementById("btn-window-event").addEventListener("click", function () {
+        var r = target.getBoundingClientRect();
+        // The alternative payload shape: {action, message, targetRect:{x,y,w,h}}
+        var detail = {
+          action: "highlight_element",
+          message: "This is the alternative payload shape.",
+          targetRect: { x: r.left, y: r.top, width: r.width, height: r.height }
+        };
+        window.__PREVIEW_EMIT__(detail, true);
+        log("emit on window: " + JSON.stringify(detail.action));
+      });
+
+      document.getElementById("btn-bad").addEventListener("click", function () {
+        window.__PREVIEW_EMIT__({ mood: "banana", x: 40, y: 40, targetRect: null }, false);
+        log("emit mood=banana (expect idle)");
+      });
+
+      document.getElementById("btn-msg").addEventListener("click", function () {
+        window.KidGuardMascot.setMessage(document.getElementById("msg").value);
+        log("setMessage()");
+      });
+      document.getElementById("btn-point-el").addEventListener("click", function () {
+        window.KidGuardMascot.pointToElement(target, { message: "Look at this box." });
+        log("pointToElement()");
+      });
+      document.getElementById("btn-point-xy").addEventListener("click", function () {
+        window.KidGuardMascot.pointToCoordinates(window.innerWidth / 2, window.innerHeight / 2);
+        log("pointToCoordinates(centre)");
+      });
+      document.getElementById("btn-show").addEventListener("click", function () {
+        window.KidGuardMascot.show();
+        log("show()");
+      });
+      document.getElementById("btn-hide").addEventListener("click", function () {
+        window.KidGuardMascot.hide();
+        log("hide()");
+      });
+      document.getElementById("btn-reset").addEventListener("click", function () {
+        window.KidGuardMascot.reset();
+        log("reset()");
+      });
+      document.getElementById("btn-destroy").addEventListener("click", function () {
+        window.KidGuardMascot.destroy();
+        log("destroy() - reload the page to bring it back");
+      });
+
+      var SCENARIOS = {
+        safe: function () {
+          emit("happy", false);
+          window.KidGuardMascot.setMessage("This page looks fine. Have fun!");
+        },
+        suspicious: function () {
+          emit("worry", false);
+          window.KidGuardMascot.setMessage("Hmm, this page is trying to trick you.");
+        },
+        highlight: function () {
+          emit("point", true);
+          window.KidGuardMascot.setMessage("Here is the safe button.");
+        },
+        password: function () {
+          var pw = document.getElementById("fake-password");
+          emit("worry", true);
+          window.KidGuardMascot.pointToElement(pw, {
+            message: "Never type your password here."
+          });
+        }
+      };
+      Array.prototype.forEach.call(document.querySelectorAll("[data-scenario]"), function (b) {
+        b.addEventListener("click", function () {
+          SCENARIOS[b.getAttribute("data-scenario")]();
+          log("scenario: " + b.getAttribute("data-scenario"));
+        });
+      });
+
+      /* --------------------------------------------------- draggable target */
+      (function () {
+        var dragging = false;
+        var dx = 0;
+        var dy = 0;
+        target.addEventListener("pointerdown", function (e) {
+          if (e.target.id === "fake-password") return;
+          dragging = true;
+          var r = target.getBoundingClientRect();
+          dx = e.clientX - r.left;
+          dy = e.clientY - r.top;
+          target.setPointerCapture(e.pointerId);
+          target.style.cursor = "grabbing";
+        });
+        target.addEventListener("pointermove", function (e) {
+          if (!dragging) return;
+          target.style.left = e.clientX - dx + "px";
+          target.style.top = e.clientY - dy + "px";
+          if (window.KidGuardMascot.getMood() === "point") {
+            window.KidGuardMascot.pointToElement(target);
+          }
+        });
+        target.addEventListener("pointerup", function (e) {
+          dragging = false;
+          target.style.cursor = "grab";
+          try {
+            target.releasePointerCapture(e.pointerId);
+          } catch (err) {}
+        });
+      })();
+
+      setInterval(render, 400);
+      render();
+    </script>
+  </body>
+</html>
