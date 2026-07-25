@@ -1,14 +1,47 @@
 # KidGuard - Chrome extension + demo kit
 
 KidGuard is a patient internet buddy for kids aged 8-11. A Chrome MV3 extension
-scrapes the current page, a local FastAPI backend asks a local Gemma model what
-to do, and Gemma answers with **tool calls** that the extension executes on the
-page: warn banner, blocking interstitial, pulsing highlight ring, and a 3D
-mascot.
+scrapes the current page, a local FastAPI backend asks **Gemma 4** what to do,
+and Gemma answers with **tool calls** the extension executes on the page: warn
+banner, blocking interstitial, highlight ring, parent notify, and a 3D mascot.
 
-Everything below works **without the backend** thanks to MOCK mode.
+**Track:** Autonomous Agents (Gemma 4 Hackathon)
+
+## Quick start (macOS — LIVE Gemma demo)
+
+```bash
+# 1) GPU model tunnel (NVIDIA Brev instance must be Running)
+brev port-forward bs7vrlon8 -p 11435:11434
+
+# 2) Backend (other terminal)
+cd "/Users/youssef/Python Projects/Gemma-hack"
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp -n .env.example .env   # OLLAMA_HOST=http://127.0.0.1:11435  MODEL=gemma4:latest
+uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+
+# 3) Demo pages (third terminal)
+python3 -m http.server 8765 --bind 127.0.0.1
+```
+
+Chrome:
+
+1. `chrome://extensions` → Developer mode → **Load unpacked** → select `extension/`
+2. Open the KidGuard side panel
+3. Ensure the badge says **LIVE** (click if it still says MOCK)
+4. Click **Parent: resume session** once
+5. Open http://127.0.0.1:8765/demo_sites/phishing.html
+
+Parent feed: http://127.0.0.1:8765/frontend/parent.html  
+Writeup draft: [`writeup/KAGGLE_WRITEUP.md`](writeup/KAGGLE_WRITEUP.md)  
+Demo script: [`writeup/DEMO_SCRIPT.md`](writeup/DEMO_SCRIPT.md)
+
+Contract check: `bash scripts/check_contract.sh`
+
+Everything below also works **without the backend** in MOCK mode.
 
 ## Repo layout (Person B scope)
+
 
 ```text
 extension/
@@ -90,7 +123,7 @@ Toggling MOCK:
 
 - **From the UI:** open the side panel and click the `MOCK` / `LIVE` badge in
   the header.
-- **From code:** `const MOCK_DEFAULT = true;` at the top of `background.js`.
+- **From code:** `const MOCK_DEFAULT = false;` at the top of `background.js` (LIVE by default).
 - **From the console:** on the service-worker devtools console
   (`chrome://extensions` -> KidGuard -> "service worker"):
 

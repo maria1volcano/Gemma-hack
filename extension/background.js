@@ -40,7 +40,7 @@ const STORAGE_KEYS = {
 };
 
 // Golden demo path: the second block-worthy page of a session pauses it.
-const PAUSE_AFTER_RISKS = 2;
+const PAUSE_AFTER_RISKS = 99; // was 2; keep demo pages usable in MOCK without freezing
 const MOCK_PAUSE_REASON =
   "That is the second risky page in a row, so I am stopping the internet for a little while.";
 

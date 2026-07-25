@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from threading import Lock
@@ -98,8 +99,10 @@ class GuardStore:
             elif name in {"suggest_alternative", "navigate_hint"}:
                 self._state["last_kid_message"] = arguments.get("label") or arguments.get("url")
 
-            # There is intentionally no pause_session tool. Pausing is backend state only.
-            if self._state["high_risk_count"] >= 2:
+            # Auto-pause off by default (KIDGUARD_AUTO_PAUSE_AFTER=0).
+            # Set e.g. 5 to re-enable after N warn/block events.
+            threshold = int(os.getenv("KIDGUARD_AUTO_PAUSE_AFTER", "0") or "0")
+            if threshold > 0 and self._state["high_risk_count"] >= threshold:
                 self._state["paused"] = True
 
             return {

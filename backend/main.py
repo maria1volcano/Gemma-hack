@@ -39,6 +39,11 @@ class CoachRequest(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
 
 
+class NotifyRequest(BaseModel):
+    summary: str = ""
+    url: str = ""
+
+
 def _agent_error(error: Exception) -> HTTPException:
     if isinstance(error, OllamaUnavailableError):
         return HTTPException(status_code=503, detail=str(error))
@@ -108,3 +113,11 @@ async def state() -> dict:
 @app.post("/resume")
 async def resume() -> dict:
     return store.resume()
+
+
+@app.post("/notify")
+async def notify(request: NotifyRequest) -> dict:
+    """Accept parent notifications forwarded by the extension service worker."""
+    summary = request.summary or f"KidGuard update ({request.url})"
+    store.execute_tool("notify_parent", {"summary": summary})
+    return {"ok": True, "events": store.events()}
