@@ -1,5 +1,13 @@
 # Person C Team Change Log
 
+## 2026-07-25 - Phase 5 Target Pointing
+
+- Added minimum working pointing behavior for `POINT_TO_ELEMENT`.
+- Mascot now selects the farthest corner from the target, points toward it,
+  and shows the existing message bubble.
+- Kept target overlays and guide line non-interactive so the target remains
+  clickable.
+
 ## 2026-07-25 - Typed Mascot Event Bridge
 
 - Added a dedicated `kidguard:mascot-command` event bridge outside the Three.js

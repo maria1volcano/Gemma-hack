@@ -80,6 +80,16 @@
   pointer-events: none;
 }
 
+.mascot-point-guide {
+  position: fixed;
+  height: 3px;
+  max-width: calc(100vw - 36px);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(24, 167, 125, 0.9), rgba(24, 167, 125, 0));
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
 @media (max-width: 720px) {
   .mascot-container {
     width: 104px;

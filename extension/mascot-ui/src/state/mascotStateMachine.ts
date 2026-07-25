@@ -77,6 +77,31 @@ const withNoEffect = (state: MascotMachineState): MascotTransitionResult => ({
   effect: { type: "NONE" },
 });
 
+const choosePointingCorner = (target: TargetRect): MascotCorner => {
+  const targetCenterX = target.x + target.width / 2;
+  const targetCenterY = target.y + target.height / 2;
+  const margin = 84;
+  const corners: Array<{ corner: MascotCorner; x: number; y: number }> = [
+    { corner: "top-left", x: margin, y: margin },
+    { corner: "top-right", x: target.viewportWidth - margin, y: margin },
+    { corner: "bottom-left", x: margin, y: target.viewportHeight - margin },
+    {
+      corner: "bottom-right",
+      x: target.viewportWidth - margin,
+      y: target.viewportHeight - margin,
+    },
+  ];
+
+  return corners.reduce((best, candidate) => {
+    const bestDistance =
+      (best.x - targetCenterX) ** 2 + (best.y - targetCenterY) ** 2;
+    const candidateDistance =
+      (candidate.x - targetCenterX) ** 2 + (candidate.y - targetCenterY) ** 2;
+
+    return candidateDistance > bestDistance ? candidate : best;
+  }).corner;
+};
+
 export function resolveMascotViewState(state: MascotMachineState): MascotViewState {
   if (state.persistent.mood === "blocked") {
     return { ...state.persistent, mood: "blocked" };
@@ -150,6 +175,7 @@ export function transitionMascotState(
         state: {
           persistent: {
             ...state.persistent,
+            corner: choosePointingCorner(input.target),
             visible: true,
             target: input.target,
           },
