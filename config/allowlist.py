@@ -10,9 +10,12 @@ ALLOWED_DOMAINS = {
     "www.pbskids.org",
     "www.khanacademy.org",
     "scratch.mit.edu",
+    "127.0.0.1",
+    "localhost",
 }
 
 SAFER_ALTERNATIVES = [
+    {"label": "Classroom (demo)", "url": "http://127.0.0.1:8765/demo_sites/classroom.html"},
     {"label": "PBS Kids", "url": "https://www.pbskids.org/"},
     {"label": "Khan Academy Kids", "url": "https://www.khanacademy.org/kids/"},
     {"label": "National Geographic Kids", "url": "https://kids.nationalgeographic.com/"},
@@ -27,9 +30,12 @@ def is_allowlisted(url: str) -> bool:
         hostname = (parsed.hostname or "").lower()
     except ValueError:
         return False
-    return parsed.scheme in {"http", "https"} and (
-        hostname in ALLOWED_DOMAINS
-        or any(hostname.endswith(f".{domain}") for domain in ALLOWED_DOMAINS)
+    if parsed.scheme not in {"http", "https"}:
+        return False
+    if hostname in {"127.0.0.1", "localhost"}:
+        return "/demo_sites/" in (parsed.path or "")
+    return hostname in ALLOWED_DOMAINS or any(
+        hostname.endswith(f".{domain}") for domain in ALLOWED_DOMAINS
     )
 
 

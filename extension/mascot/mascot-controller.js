@@ -171,11 +171,15 @@
       }
     }
 
+    // Only fetch a GLB when one is actually shipped. A missing
+    // chrome-extension://…/assets/mascot.glb fetch shows up as a red
+    // "Errors" entry on chrome://extensions even when the promise is caught.
+    // Drop a file at assets/mascot.glb and flip this to NS.url("assets/mascot.glb").
     var scene = NS.createScene({
       width: CANVAS_W,
       height: CANVAS_H,
       reduced: reduced,
-      glbUrl: NS.url("assets/mascot.glb"),
+      glbUrl: null,
       onFirstFrame: function () {
         state.ready = true;
         // Only now is the 3D actually on screen: drop the CSS placeholder.

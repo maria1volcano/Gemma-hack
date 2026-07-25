@@ -89,7 +89,8 @@ class GuardStore:
                     "reason": reason,
                     "safer_alternative": alternative,
                 }
-                self._state["last_kid_message"] = alternative
+                # Prefer the kid-facing reason over a raw alternative URL.
+                self._state["last_kid_message"] = reason
                 self._state["high_risk_count"] += 1
                 self._append_event("block", f"Blocked page: {reason}. Safer alternative: {alternative}")
             elif name == "notify_parent":

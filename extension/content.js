@@ -89,10 +89,14 @@
 
     shadow = host.attachShadow({ mode: "open" });
 
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = chrome.runtime.getURL("overlay.css");
-    shadow.appendChild(link);
+    try {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      link.href = chrome.runtime.getURL("overlay.css");
+      shadow.appendChild(link);
+    } catch (_) {
+      /* extension context invalidated mid-reload — overlays still work via content_scripts css */
+    }
 
     const stage = document.createElement("div");
     stage.className = "kg-stage";
@@ -286,6 +290,20 @@
     if (layers) layers.chips.textContent = "";
   }
 
+  function clearToasts() {
+    if (layers) layers.toast.textContent = "";
+  }
+
+  let thinkingTimer = 0;
+  let thinkingEl = null;
+
+  function clearThinking() {
+    clearTimeout(thinkingTimer);
+    thinkingTimer = 0;
+    if (thinkingEl && thinkingEl.parentNode) thinkingEl.remove();
+    thinkingEl = null;
+  }
+
   function toast(text, ms) {
     ensureRoot();
     const life = typeof ms === "number" ? ms : 2600;
@@ -293,8 +311,13 @@
     el.className = "kg-toast";
     el.textContent = text;
     layers.toast.appendChild(el);
-    setTimeout(() => el.classList.add("kg-toast-out"), life);
-    setTimeout(() => el.remove(), life + 600);
+    setTimeout(() => {
+      if (el.parentNode) el.classList.add("kg-toast-out");
+    }, life);
+    setTimeout(() => {
+      if (el.parentNode) el.remove();
+    }, life + 600);
+    return el;
   }
 
   // Shown when the side panel refuses to open without a live user gesture.
@@ -323,6 +346,8 @@
 
     warn_kid(args) {
       ensureRoot();
+      // A full block already carries the message — don't stack a second card.
+      if (layers.stage.classList.contains("kg-blocking")) return;
       clearWarn();
       const message = args.message || "Careful with this page.";
       const reason = args.reason || "";
@@ -340,7 +365,7 @@
       box.querySelector(".kg-warn-reason").textContent = reason;
       box.querySelector(".kg-warn-close").addEventListener("click", clearWarn);
       layers.warn.appendChild(box);
-      const spot = defaultMascotSpot();
+      const spot = { x: 28, y: Math.max(16, window.innerHeight - 150) };
       emitMascot("worry", spot.x, spot.y, null);
     },
 
@@ -349,14 +374,19 @@
       clearWarn();
       clearBlock();
       const reason = args.reason || "This page is not safe for you.";
-      const safer = args.safer_alternative || "";
+      const saferRaw = args.safer_alternative || "";
+      const safer = /^https?:\/\//i.test(saferRaw)
+        ? saferRaw
+        : "http://127.0.0.1:8765/demo_sites/classroom.html";
 
       const box = document.createElement("div");
       box.className = "kg-block";
       box.innerHTML =
         '<div class="kg-block-card">' +
+        '<div class="kg-block-head">' +
         '<div class="kg-block-face">:(</div>' +
         '<h1 class="kg-block-title">Let\'s not go here</h1>' +
+        "</div>" +
         '<p class="kg-block-reason"></p>' +
         '<div class="kg-block-actions">' +
         '<button class="kg-btn kg-btn-primary" type="button" data-kg="safe">Take me somewhere safe</button>' +
@@ -365,24 +395,17 @@
         "</div>";
       box.querySelector(".kg-block-reason").textContent = reason;
 
-      const safeBtn = box.querySelector('[data-kg="safe"]');
-      if (safer) {
-        safeBtn.addEventListener("click", () => goTo(safer));
-      } else {
-        safeBtn.disabled = true;
-      }
+      box.querySelector('[data-kg="safe"]').addEventListener("click", () => goTo(safer));
       box.querySelector('[data-kg="buddy"]').addEventListener("click", () => {
-        // chrome.sidePanel.open() needs a live user gesture and the gesture does
-        // not always survive the hop to the service worker: always be ready to
-        // tell the kid where the toolbar icon is.
         send({ type: "KG_OPEN_PANEL" }).then((res) => {
           if (!res || !res.ok) showPanelHint();
         });
       });
 
       layers.block.appendChild(box);
+      // Coach mode: keep the page visible (no blur). Mascot sits under the card.
       layers.stage.classList.add("kg-blocking");
-      const spot = { x: Math.round(window.innerWidth / 2) - 60, y: Math.round(window.innerHeight / 2) + 120 };
+      const spot = { x: 28, y: Math.max(16, window.innerHeight - 150) };
       emitMascot("worry", spot.x, spot.y, null);
     },
 
@@ -404,8 +427,9 @@
       ensureRoot();
       const query = args.text_or_css || args.selector || args.text || "";
       const message = args.message || "Look here.";
+      const safe = args.safe === true || args.style === "safe" || /safer|safe|classroom|resource/i.test(message);
       cancelHighlightRetry();
-      attemptHighlight(String(query || ""), message, 0);
+      attemptHighlight(String(query || ""), message, 0, safe);
     },
 
     move_mascot(args) {
@@ -418,6 +442,8 @@
     notify_parent(args) {
       const summary = args.summary || "";
       send({ type: "KG_NOTIFY_PARENT", payload: { summary: summary, url: location.href } });
+      // Quiet during an on-page coach card — parent feed still gets the event.
+      if (!layers || layers.stage.classList.contains("kg-blocking")) return;
       toast("I told your grown-up.");
     },
 
@@ -546,6 +572,17 @@
       .map(norm);
   }
 
+  // Short recipe tokens → longer page phrases (ok_school / classroom demos).
+  const HIGHLIGHT_ALIASES = {
+    tips: ["Homework tips that actually help", "Homework tips", "Study Tips"],
+    tip: ["Homework tips that actually help", "Homework tips"],
+    "homework tips": ["Homework tips that actually help"],
+    "study tips": ["Study Tips", "Homework tips that actually help"],
+    "reading: three pages": ["2. Reading: Three Pages and a Question", "Reading: Three Pages and a Question"],
+    "maths: fraction pizza": ["1. Maths: Fraction Pizza"],
+    "science: cloud watch": ["3. Science: Cloud Watch"]
+  };
+
   /*
    * Resolution chain, most precise first:
    *   1. valid CSS selector
@@ -553,9 +590,10 @@
    *   3. exact visible-text match on an interactive element
    *   4. partial case-insensitive text match on an interactive element
    *   5. aria-label / placeholder / name / value / title / alt / id match
-   *   6. exact text match on a plain text block (headings, list items, ...)
+   *   6. exact / longest-partial text match on a plain text block
+   *   7. synonym aliases for short demo tokens ("tips" → heading phrase)
    */
-  function resolveTarget(query) {
+  function resolveTargetOnce(query) {
     const q = String(query || "").trim();
     if (!q) return null;
 
@@ -597,9 +635,40 @@
     if (partialAttr) return labelTarget(partialAttr);
 
     const blocks = safeQueryAll(TEXT_BLOCKS).slice(0, TEXT_BLOCK_LIMIT);
+    let bestPartial = null;
+    let bestPartialLen = Infinity;
+    // Short tokens like "tips" need a word-boundary match; longer phrases use includes.
+    let wordRe = null;
+    if (needle.length >= 3 && needle.length < 6) {
+      try {
+        wordRe = new RegExp("(?:^|\\s)" + needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "(?:\\s|$|[.,:;!?])");
+      } catch (_) {
+        wordRe = null;
+      }
+    }
     for (const el of blocks) {
       if (!isVisible(el)) continue;
-      if (norm(el.textContent) === needle) return el;
+      const text = norm(el.textContent);
+      if (!text) continue;
+      if (text === needle) return el;
+      // Prefer the tightest containing block so a section <div> does not win.
+      const loose = needle.length >= 6 && text.includes(needle);
+      const wordHit = wordRe && wordRe.test(text);
+      if ((loose || wordHit) && text.length < bestPartialLen) {
+        bestPartial = el;
+        bestPartialLen = text.length;
+      }
+    }
+    return bestPartial;
+  }
+
+  function resolveTarget(query) {
+    const hit = resolveTargetOnce(query);
+    if (hit) return hit;
+    const aliases = HIGHLIGHT_ALIASES[norm(query)] || [];
+    for (let i = 0; i < aliases.length; i++) {
+      const alt = resolveTargetOnce(aliases[i]);
+      if (alt) return alt;
     }
     return null;
   }
@@ -610,26 +679,29 @@
   // decision comes back. Then degrade to a visible message, never to nothing.
   const HIGHLIGHT_RETRY_MS = [200, 450, 900];
 
-  function attemptHighlight(query, message, attempt) {
+  function attemptHighlight(query, message, attempt, safe) {
     const el = resolveTarget(query);
     if (el) {
       cancelHighlightRetry();
-      mountHighlight(el, message);
+      mountHighlight(el, message, !!safe);
       return;
     }
     if (attempt < HIGHLIGHT_RETRY_MS.length) {
       highlightRetry = {
-        timer: setTimeout(() => attemptHighlight(query, message, attempt + 1), HIGHLIGHT_RETRY_MS[attempt])
+        timer: setTimeout(() => attemptHighlight(query, message, attempt + 1, safe), HIGHLIGHT_RETRY_MS[attempt])
       };
       return;
     }
     cancelHighlightRetry();
-    console.warn("[KidGuard] highlight target not found:", query);
+    // Non-fatal: Chrome lists console.warn under the extension Errors button.
+    if (typeof console !== "undefined" && console.debug) {
+      console.debug("[KidGuard] highlight target not found:", query);
+    }
     // The kid still gets the coaching sentence even without a ring.
     toast(message, 6000);
   }
 
-  function mountHighlight(el, message) {
+  function mountHighlight(el, message, safe) {
     ensureRoot();
     clearHighlight();
 
@@ -642,9 +714,9 @@
     }
 
     const ring = document.createElement("div");
-    ring.className = "kg-ring";
+    ring.className = "kg-ring" + (safe ? " kg-ring-safe" : "");
     const tip = document.createElement("div");
-    tip.className = "kg-tip";
+    tip.className = "kg-tip" + (safe ? " kg-tip-safe" : "");
     tip.textContent = message;
     layers.ring.appendChild(ring);
     layers.ring.appendChild(tip);
@@ -682,6 +754,13 @@
 
     positionHighlight(st);
     settleHighlight(st);
+
+    // After the coach card opens, walk the mascot over to the risky spot.
+    if (st.rect) {
+      const rx = clampX(st.rect.left + st.rect.width + 18);
+      const ry = Math.max(16, Math.min(st.rect.top - 10, window.innerHeight - 140));
+      emitMascot("point", rx, ry, st.rect);
+    }
   }
 
   function settleHighlight(st) {
@@ -754,13 +833,13 @@
       if (!call) continue;
       const fn = TOOLS[call.tool];
       if (!fn) {
-        console.warn("[KidGuard] unknown tool", call.tool);
+        if (console.debug) console.debug("[KidGuard] unknown tool", call.tool);
         continue;
       }
       try {
         fn(call.args || {});
       } catch (err) {
-        console.warn("[KidGuard] tool failed", call.tool, err);
+        if (console.debug) console.debug("[KidGuard] tool failed", call.tool, err);
       }
     }
   }
@@ -811,7 +890,12 @@
 
     inFlight = true;
     ensureRoot();
-    toast("Gemma is thinking... this can take up to a minute.", 55000);
+    clearThinking();
+    clearToasts();
+    // Only show a thinking toast if the backend is actually slow (fast demo stays clean).
+    thinkingTimer = setTimeout(() => {
+      thinkingEl = toast("Still checking this page…", 60000);
+    }, 450);
     try {
       let res = await send({ type: "KG_DECIDE", payload: payload });
       // The service worker may have been asleep or mid-restart: one cheap retry.
@@ -822,6 +906,8 @@
 
       lastSentText = signature;
       lastSentUrl = payload.url;
+      clearThinking();
+      clearToasts();
 
       if (!res || !res.ok) {
         ensureRoot();
@@ -842,8 +928,13 @@
         if (tools.includes("block_page") || tools.includes("warn_kid")) emitMascot("worry", spot.x, spot.y, null);
         else if (tools.includes("allow_page") || tools.includes("highlight_element")) emitMascot("happy", spot.x, spot.y, null);
       }
-      if (res.kid_message) toast(String(res.kid_message).slice(0, 120), 5000);
+      // Block/warn cards already carry the message — skip a duplicate toast on those.
+      if (res.kid_message && !tools.includes("block_page") && !tools.includes("warn_kid")) {
+        toast(String(res.kid_message).slice(0, 120), 5000);
+      }
     } finally {
+      // Drop the thinking toast/timer even if something threw mid-flight.
+      clearThinking();
       inFlight = false;
       if (pendingCheck) {
         pendingCheck = false;
@@ -913,7 +1004,15 @@
   };
 
   chrome.runtime.onMessage.addListener((msg) => {
-    if (msg && msg.type === "KG_RUN_TOOLS") runToolCalls(msg.payload && msg.payload.tool_calls);
+    if (msg && msg.type === "KG_RUN_TOOLS") {
+      const payload = msg.payload || {};
+      const calls = payload.tool_calls;
+      // Coach guidance should add highlights/mascot/chips without wiping the page decision.
+      runToolCalls(calls, payload.from_coach ? false : true);
+      if (payload.from_coach && payload.reply) {
+        toast(String(payload.reply).slice(0, 140), 6000);
+      }
+    }
     if (msg && msg.type === "KG_RECHECK") check(true);
   });
 
@@ -958,8 +1057,13 @@
       return;
     }
     check(true);
-    // One cheap re-check after the DOM settles (late-rendered content).
-    setTimeout(() => check(false), 1800);
+    // Late DOM settle: only re-scrape if we have not already blocked/warned.
+    setTimeout(() => {
+      if (sessionPaused) return;
+      if (layers && layers.stage && layers.stage.classList.contains("kg-blocking")) return;
+      if (layers && layers.warn && layers.warn.childNodes.length) return;
+      check(false);
+    }, 1800);
   }
 
   boot();

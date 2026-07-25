@@ -5,7 +5,6 @@ const chipsEl = document.getElementById("chips");
 const formEl = document.getElementById("form");
 const inputEl = document.getElementById("input");
 const sendEl = document.getElementById("send");
-const micEl = document.getElementById("mic");
 const statusEl = document.getElementById("status");
 const modeEl = document.getElementById("mode");
 const resumeEl = document.getElementById("resume");
@@ -14,8 +13,6 @@ const toastEl = document.getElementById("toast");
 let paused = false;
 let pauseReason = "";
 let busy = false;
-let recognition = null;
-let listening = false;
 
 function send(msg) {
   return new Promise((resolve) => {
@@ -64,8 +61,7 @@ function setBusy(state) {
   const disabled = busy || paused;
   inputEl.disabled = disabled;
   sendEl.disabled = disabled;
-  if (micEl) micEl.disabled = disabled || listening;
-  inputEl.placeholder = paused ? "Session paused - ask a grown-up" : "Ask or tap Mic to talk...";
+  inputEl.placeholder = paused ? "Session paused - ask a grown-up" : "Ask your buddy...";
 }
 
 function renderChips(toolCalls) {
@@ -185,67 +181,6 @@ async function askCoach(text) {
   refreshSettings();
 }
 
-function stopListening() {
-  listening = false;
-  if (micEl) micEl.classList.remove("listening");
-  if (recognition) {
-    try {
-      recognition.stop();
-    } catch (_) {}
-  }
-  setBusy(busy);
-}
-
-function startListening() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    toast("Voice is not available in this Chrome.");
-    return;
-  }
-  if (busy || paused) return;
-
-  if (!recognition) {
-    recognition = new SpeechRecognition();
-    recognition.lang = "en-US";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.onresult = (event) => {
-      const said = event.results && event.results[0] && event.results[0][0] && event.results[0][0].transcript;
-      stopListening();
-      if (said) askCoach(said);
-    };
-    recognition.onerror = () => {
-      stopListening();
-      toast("I could not hear that. Try again.");
-    };
-    recognition.onend = () => {
-      listening = false;
-      if (micEl) micEl.classList.remove("listening");
-      setBusy(busy);
-    };
-  }
-
-  listening = true;
-  if (micEl) {
-    micEl.classList.add("listening");
-    micEl.disabled = true;
-  }
-  toast("Listening... speak now");
-  try {
-    recognition.start();
-  } catch (_) {
-    stopListening();
-    toast("Mic busy - try again.");
-  }
-}
-
-if (micEl) {
-  micEl.addEventListener("click", () => {
-    if (listening) stopListening();
-    else startListening();
-  });
-}
-
 formEl.addEventListener("submit", async (e) => {
   e.preventDefault();
   await askCoach(inputEl.value);
@@ -253,6 +188,6 @@ formEl.addEventListener("submit", async (e) => {
 
 addMessage(
   "buddy",
-  "Hi! I am your KidGuard buddy. Tap Mic to talk to me, or type if you prefer."
+  "Hi! I am your KidGuard buddy. Type a message and I will help."
 );
 refreshSettings();

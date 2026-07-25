@@ -12,6 +12,7 @@ from backend.agent import (
     OllamaUnavailableError,
     run_coach,
     run_guard,
+    warmup_model,
 )
 from backend.store import GuardStore
 
@@ -81,6 +82,7 @@ async def decide(request: DecideRequest) -> dict:
         "kid_message": state["last_kid_message"],
         "tool_calls": _extension_tool_calls(result["tool_calls"]),
         "events": store.events(),
+        "source": result.get("source", "ollama"),
     }
 
 
@@ -91,13 +93,23 @@ async def coach(request: CoachRequest) -> dict:
     except (OllamaUnavailableError, OllamaResponseError) as exc:
         raise _agent_error(exc) from exc
 
-    kid_message = store.state()["last_kid_message"]
+    kid_message = result.get("reply") or store.state()["last_kid_message"]
     return {
         "action": result["action"],
         "reply": kid_message,
         "kid_message": kid_message,
         "tool_calls": _extension_tool_calls(result["tool_calls"]),
+        "source": result.get("source", "ollama"),
     }
+
+
+@app.post("/warmup")
+async def warmup() -> dict:
+    """Prime Ollama before a live Gemma demo so the first call is less cold."""
+    try:
+        return await warmup_model()
+    except (OllamaUnavailableError, OllamaResponseError) as exc:
+        raise _agent_error(exc) from exc
 
 
 @app.get("/events")

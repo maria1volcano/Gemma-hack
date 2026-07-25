@@ -208,6 +208,9 @@
   var tries = 0;
   function boot() {
     if (NS.controller) return;
+    // WebGL hard-failed once: keep Person B's CSS placeholder, do not retry
+    // (each retry would console.error from THREE.WebGLRenderer and fill Errors).
+    if (NS.webglUnavailable) return;
     var ctl = null;
     try {
       ctl = NS.createController();
@@ -225,7 +228,9 @@
       drain();
       return;
     }
+    if (NS.webglUnavailable) return;
     tries++;
+    // Host may not exist yet (content.js still booting) — retry a few times only.
     if (tries < 40) setTimeout(boot, tries < 10 ? 120 : 500);
   }
 

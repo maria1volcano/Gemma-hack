@@ -204,7 +204,18 @@
         powerPreference: "low-power"
       });
     } catch (err) {
+      NS.webglUnavailable = true;
       if (opts.onError) opts.onError("WebGL unavailable: " + (err && err.message ? err.message : err));
+      return null;
+    }
+    // Three.js logs console.error before throwing when the context is missing;
+    // treat a null/invalid context the same as a throw so boot stops retrying.
+    if (!renderer || !renderer.getContext || !renderer.getContext()) {
+      NS.webglUnavailable = true;
+      try {
+        if (renderer && renderer.dispose) renderer.dispose();
+      } catch (_) {}
+      if (opts.onError) opts.onError("WebGL unavailable: no context");
       return null;
     }
 

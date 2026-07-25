@@ -156,31 +156,6 @@
         border-top: 2px solid #e6e0ff;
       }
 
-      #mic {
-        flex: 0 0 auto;
-        min-width: 52px;
-        padding: 12px 10px;
-        border: 0;
-        border-radius: 999px;
-        background: #6c5ce7;
-        color: #fff;
-        font-family: inherit;
-        font-size: 13px;
-        font-weight: 800;
-        cursor: pointer;
-        box-shadow: 0 4px 0 #4b3fb5;
-      }
-
-      #mic.listening {
-        background: #ff6b6b;
-        box-shadow: 0 4px 0 #c94444;
-      }
-
-      #mic:disabled {
-        opacity: 0.5;
-        cursor: default;
-      }
-
       #input {
         flex: 1;
         padding: 12px 14px;
@@ -292,8 +267,7 @@
     <div class="chips" id="chips"></div>
 
     <form id="form" autocomplete="off">
-      <button id="mic" type="button" title="Talk to your buddy" aria-label="Talk">Mic</button>
-      <input id="input" type="text" placeholder="Ask or tap Mic to talk..." maxlength="400" />
+      <input id="input" type="text" placeholder="Ask your buddy..." maxlength="400" />
       <button id="send" type="submit">Send</button>
     </form>
 

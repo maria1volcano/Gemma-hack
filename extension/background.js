@@ -113,7 +113,8 @@ const ARG_KEYS = [
   "mood",
   "summary",
   "label",
-  "url"
+  "url",
+  "safe"
 ];
 
 // Accepts the shapes a Gemma/Ollama style backend might return and flattens
@@ -175,13 +176,67 @@ const CLICKBAIT_SIGNALS = [
   "no survey"
 ];
 
+// Hard self-harm / suicide signals (real search pages). Keep kid copy calm.
+const SELF_HARM_PATTERNS = [
+  /\bsuicid(?:e|al)\b/i,
+  /\bself[-\s]?harm(?:ing)?\b/i,
+  /\bkill\s+(?:my|your)self\b/i,
+  /\bend\s+(?:my|your)\s+life\b/i,
+  /\bwant(?:s|ed|ing)?\s+to\s+die\b/i,
+  /\bhow\s+to\s+(?:die|kill\s+(?:my|your)self)\b/i
+];
+const CLASSROOM_URL = "http://127.0.0.1:8765/demo_sites/classroom.html";
+const SELF_HARM_BLOCK_REASON =
+  "This page talks about really hard feelings in a way that is not okay for you. Let's go somewhere kinder together.";
+const SELF_HARM_WARN_MESSAGE = "Let's step away from this page and pick something safer.";
+const SELF_HARM_WARN_REASON = "This topic needs a grown-up, not the internet.";
+const SELF_HARM_PARENT_SUMMARY =
+  "KidGuard hard-blocked a page with self-harm / suicide search or content signals.";
+
 function hits(haystack, needles) {
   return needles.filter((n) => haystack.includes(n));
+}
+
+function hasSelfHarmSignal(payload) {
+  let url = "";
+  try {
+    url = decodeURIComponent(String((payload && payload.url) || ""));
+  } catch (_) {
+    url = String((payload && payload.url) || "");
+  }
+  const blob = [url, payload && payload.title, payload && payload.text]
+    .filter(Boolean)
+    .join(" \n ");
+  if (!blob.trim()) return false;
+  return SELF_HARM_PATTERNS.some((re) => re.test(blob));
+}
+
+function selfHarmBlockResult() {
+  return {
+    kid_message: SELF_HARM_BLOCK_REASON,
+    tool_calls: [
+      {
+        tool: "warn_kid",
+        args: { message: SELF_HARM_WARN_MESSAGE, reason: SELF_HARM_WARN_REASON }
+      },
+      { tool: "move_mascot", args: { x_hint: "left", mood: "worry" } },
+      { tool: "suggest_alternative", args: { label: "Go to Classroom", url: CLASSROOM_URL } },
+      {
+        tool: "block_page",
+        args: { reason: SELF_HARM_BLOCK_REASON, safer_alternative: CLASSROOM_URL }
+      },
+      // After block_page so the content script skips the "told your grown-up" toast.
+      { tool: "notify_parent", args: { summary: SELF_HARM_PARENT_SUMMARY } }
+    ]
+  };
 }
 
 function mockDecide(payload) {
   const blob = [payload.url, payload.title, payload.text].filter(Boolean).join(" \n ").toLowerCase();
   const signals = payload.signals || {};
+  if (hasSelfHarmSignal(payload)) {
+    return selfHarmBlockResult();
+  }
   const hard = hits(blob, HARD_SIGNALS);
   const bait = hits(blob, SCAM_BAIT);
   const clickbait = hits(blob, CLICKBAIT_SIGNALS);
@@ -234,24 +289,219 @@ function mockDecide(payload) {
   };
 }
 
-function mockCoach(message) {
-  const m = String(message || "").toLowerCase();
-  if (m.includes("classroom") || m.includes("homework") || m.includes("school")) {
+function coachHasTool(calls, name) {
+  return (calls || []).some((c) => c && c.tool === name);
+}
+
+/** Page-grounded coach recipes (mirrors backend/demo_fast.fast_coach_plan). */
+function coachVisualRecipe(message) {
+  const m = String(message || "").toLowerCase().replace(/\s+/g, " ").trim();
+  if (!m) return null;
+  const classroomUrl = "http://127.0.0.1:8765/demo_sites/classroom.html";
+  const resourcesUrl = "http://127.0.0.1:8765/demo_sites/ok_school.html";
+
+  const highlight = (text, msg, safe = true) => ({
+    tool: "highlight_element",
+    args: safe
+      ? { text_or_css: text, message: msg, safe: true }
+      : { text_or_css: text, message: msg }
+  });
+  const point = (mood = "point") => ({
+    tool: "move_mascot",
+    args: { x_hint: "target", mood }
+  });
+  const classroomChip = {
+    tool: "suggest_alternative",
+    args: { label: "Go to Classroom", url: classroomUrl }
+  };
+  const resourcesChip = {
+    tool: "suggest_alternative",
+    args: { label: "School Resources", url: resourcesUrl }
+  };
+
+  if (/\b(password|login|phish|robux|free coins)\b/.test(m) || m.includes("free robux")) {
     return {
-      reply: "Sure! Classroom is a safe place. I put a button below - tap it and I will take you there.",
-      tool_calls: [{ tool: "suggest_alternative", args: { label: "Open Classroom", url: "classroom.html" } }]
+      reply: "Do not type a password here — I marked the risky box in pink. Use the green safe path instead.",
+      tool_calls: [
+        classroomChip,
+        highlight("password", "Do not type a password here.", false),
+        point("worry")
+      ]
     };
   }
-  if (m.includes("password") || m.includes("robux") || m.includes("free")) {
+  if (
+    /\b(get out|get me out|leave|exit|escape|stuck|go away|somewhere safe|safe place|take me somewhere|go back|help me out|out of this|classroom|go to school|go to class)\b/.test(
+      m
+    ) ||
+    m.includes("is this safe") ||
+    m.includes("is it safe") ||
+    m.includes("safe?") ||
+    m.includes("feels weird")
+  ) {
+    return {
+      reply: "Follow the glowing green button I am pointing at — that takes you somewhere safer.",
+      tool_calls: [
+        classroomChip,
+        highlight("Classroom", "Tap here to go somewhere safer."),
+        point()
+      ]
+    };
+  }
+  if (/\bfriday\b|\bfri\b/.test(m)) {
     return {
       reply:
-        "Good question. If a site promises free things or asks for your password, it is almost always a trick. Never type a password unless a grown-up says it is OK.",
-      tool_calls: []
+        "On Friday the library is open from 8:30 to 15:00 — I circled Friday for you. Remember to return your books before the weekend!",
+      tool_calls: [highlight("Friday", "Friday library hours are right here."), point("happy")]
     };
   }
+  if (
+    /\b(library|opening hour|open hour|hours|timetable|schedule|what time)\b/.test(m) ||
+    m.includes("what on") ||
+    m.includes("have on")
+  ) {
+    return {
+      reply: "Library times are in this table — I marked Library opening hours for you.",
+      tool_calls: [highlight("Library opening hours", "Check the hours in this table."), point("happy")]
+    };
+  }
+  if (
+    /\b(homework tip|study tip|homework help|tips for homework)\b/.test(m) ||
+    (/\btips?\b/.test(m) && !m.includes("resource")) ||
+    (m.includes("homework") && m.includes("tip")) ||
+    (m.includes("study") && m.includes("tip"))
+  ) {
+    return {
+      reply: "Here are homework tips that actually help — I put a green ring on them!",
+      tool_calls: [highlight("Homework tips that actually help", "Try these homework tips."), point("happy")]
+    };
+  }
+  if (
+    /\b(reading list|book list|books to read|this term)\b/.test(m) ||
+    m.includes("what should i read") ||
+    (m.includes("read") && (m.includes("book") || m.includes("list")))
+  ) {
+    return {
+      reply: "This term's reading list is up here — pick a book that looks fun!",
+      tool_calls: [
+        highlight("This term's reading list", "Books for this term live here."),
+        point("happy")
+      ]
+    };
+  }
+  if (/\b(book swap|coming up|this month|achebe)\b/.test(m)) {
+    return {
+      reply: "The book swap is coming up this month — I marked that bit for you.",
+      tool_calls: [highlight("Coming up this month", "Look at what is coming up."), point("happy")]
+    };
+  }
+  if (/\b(maths|math|fraction|pizza)\b/.test(m)) {
+    return {
+      reply: "Your maths job is Fraction Pizza — I circled it so you can start there!",
+      tool_calls: [highlight("1. Maths: Fraction Pizza", "Start with this maths assignment."), point("happy")]
+    };
+  }
+  if (
+    /\b(reading assignment|three pages|reading homework)\b/.test(m) ||
+    (m.includes("reading") && (m.includes("assignment") || m.includes("homework") || m.includes("due")))
+  ) {
+    return {
+      reply: "Your reading assignment is Three Pages and a Question — look, I marked it!",
+      tool_calls: [highlight("2. Reading: Three Pages and a Question", "This is your reading assignment."), point("happy")]
+    };
+  }
+  if (/\b(science|cloud|clouds)\b/.test(m)) {
+    return {
+      reply: "Science is Cloud Watch — you already finished it. Nice work!",
+      tool_calls: [highlight("3. Science: Cloud Watch", "Your science assignment is here."), point("happy")]
+    };
+  }
+  if (/\b(assignment|assignments|homework|due tuesday|due thursday)\b/.test(m)) {
+    return {
+      reply: "Your assignments are in this list — I put a green ring on them!",
+      tool_calls: [highlight("Your assignments", "Your assignments are right here."), point("happy")]
+    };
+  }
+  if (
+    /\b(resource|resources|school resource|assignment help)\b/.test(m) ||
+    m.includes("where can i get") ||
+    m.includes("where do i find school")
+  ) {
+    return {
+      reply: "School resources are this way — tap the glowing green button I am pointing at.",
+      tool_calls: [
+        resourcesChip,
+        highlight("School Resources", "Tap here for school resources."),
+        point()
+      ]
+    };
+  }
+  return null;
+}
+
+/**
+ * If live Gemma forgot highlight/move_mascot, add a small page-grounded visual
+ * from the kid message so the mascot still points at something useful.
+ */
+function enrichCoachVisuals(message, toolCalls, reply) {
+  const calls = Array.isArray(toolCalls) ? toolCalls.slice() : [];
+  const recipe = coachVisualRecipe(message);
+  if (!recipe) {
+    return { tool_calls: calls, reply: reply || "" };
+  }
+
+  const hasHighlight = coachHasTool(calls, "highlight_element");
+  const hasMove = coachHasTool(calls, "move_mascot");
+  const recipeHasSuggest = recipe.tool_calls.some((t) => t && t.tool === "suggest_alternative");
+  const recipeHighlight = recipe.tool_calls.find((t) => t && t.tool === "highlight_element");
+  const genericSafer =
+    /^tap the button below/i.test(String(reply || "")) ||
+    (/somewhere safer/i.test(String(reply || "")) && coachHasTool(calls, "suggest_alternative"));
+
+  // Kid asked a page-grounded question (Friday, tips, …) but Gemma only offered Classroom.
+  if (!recipeHasSuggest && genericSafer) {
+    return { tool_calls: recipe.tool_calls.slice(), reply: recipe.reply };
+  }
+
+  // Replace short/weak highlight queries (e.g. "tips") with the page-grounded recipe.
+  if (hasHighlight && recipeHighlight) {
+    for (let i = 0; i < calls.length; i++) {
+      const c = calls[i];
+      if (!c || c.tool !== "highlight_element") continue;
+      const q = String((c.args && (c.args.text_or_css || c.args.selector || c.args.text)) || "").trim();
+      if (q.length > 0 && q.length < 12) {
+        calls[i] = {
+          tool: "highlight_element",
+          args: Object.assign({}, c.args || {}, recipeHighlight.args || {})
+        };
+      }
+    }
+  }
+
+  if (hasHighlight && hasMove) {
+    return { tool_calls: calls, reply: reply || recipe.reply };
+  }
+
+  for (const t of recipe.tool_calls) {
+    if (!t || !t.tool) continue;
+    if (t.tool === "highlight_element" && hasHighlight) continue;
+    if (t.tool === "move_mascot" && hasMove) continue;
+    if (t.tool === "suggest_alternative" && coachHasTool(calls, "suggest_alternative")) continue;
+    calls.push(t);
+  }
+
+  const outReply =
+    reply && !/^tap the button below/i.test(String(reply))
+      ? reply
+      : recipe.reply || reply || "";
+  return { tool_calls: calls, reply: outReply };
+}
+
+function mockCoach(message) {
+  const recipe = coachVisualRecipe(message);
+  if (recipe) return recipe;
   return {
-    reply: "I am here to help you stay safe online. Ask me about a page, or ask me to take you somewhere safe.",
-    tool_calls: []
+    reply: "Tell me what you need — homework, library times, or a safer page — and I will point to it.",
+    tool_calls: [{ tool: "move_mascot", args: { x_hint: "right", mood: "happy" } }]
   };
 }
 
@@ -274,6 +524,25 @@ async function handleDecide(payload, sender) {
   // lock, so a stray call can never wake the slow model during a break.
   if (paused) {
     return { ok: true, source: "paused", paused: true, pause_reason: pauseReason, kid_message: "", tool_calls: [] };
+  }
+
+  // Hard self-harm / suicide: block immediately (mock or live) — never wait on Gemma.
+  if (hasSelfHarmSignal(ctx)) {
+    const result = selfHarmBlockResult();
+    const calls = result.tool_calls.slice();
+    if (calls.some((c) => c && c.tool === "block_page")) {
+      const risks = await bumpRiskCount();
+      if (risks >= PAUSE_AFTER_RISKS) {
+        calls.push({ tool: "pause_session", args: { reason: MOCK_PAUSE_REASON } });
+      }
+    }
+    return {
+      ok: true,
+      source: "fast_risk",
+      paused,
+      kid_message: result.kid_message,
+      tool_calls: calls
+    };
   }
 
   if (mock) {
@@ -302,10 +571,27 @@ async function handleDecide(payload, sender) {
   };
 }
 
+async function applyCoachVisuals(toolCalls, reply) {
+  // Drive the open page: highlight, mascot, chips — same tools as /decide.
+  if (!Array.isArray(toolCalls) || !toolCalls.length) return;
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+    if (!tab || typeof tab.id !== "number") return;
+    if (!PAGE_URL_RE.test(tab.url || "")) return;
+    await chrome.tabs.sendMessage(tab.id, {
+      type: "KG_RUN_TOOLS",
+      payload: { tool_calls: toolCalls, from_coach: true, reply: reply || "" }
+    });
+  } catch (err) {
+    console.warn("[KidGuard] coach visuals failed", err && err.message);
+  }
+}
+
 async function handleCoach(message) {
   const { mock, paused } = await getSettings();
   if (mock) {
     const result = mockCoach(message);
+    await applyCoachVisuals(result.tool_calls, result.reply);
     return { ok: true, source: "mock", paused, reply: result.reply, tool_calls: result.tool_calls };
   }
 
@@ -313,12 +599,20 @@ async function handleCoach(message) {
   if (!res.ok) return { ok: false, error: res.error, paused };
 
   const data = res.data || {};
+  const rawCalls = normalizeToolCalls(data);
+  const rawReply = data.reply || data.kid_message || data.message || "(no answer)";
+  // Fast demo already ships full visuals; still enrich live Gemma gaps.
+  const enriched =
+    data.source === "fast_demo"
+      ? { tool_calls: rawCalls, reply: rawReply }
+      : enrichCoachVisuals(message, rawCalls, rawReply);
+  await applyCoachVisuals(enriched.tool_calls, enriched.reply);
   return {
     ok: true,
-    source: "backend",
+    source: data.source || "backend",
     paused,
-    reply: data.reply || data.kid_message || data.message || "(no answer)",
-    tool_calls: normalizeToolCalls(data)
+    reply: enriched.reply,
+    tool_calls: enriched.tool_calls
   };
 }
 

@@ -6,19 +6,16 @@
 extension/assets/mascot.glb
 ```
 
-Exactly that path and that name. It is loaded with
-`chrome.runtime.getURL('assets/mascot.glb')` (the folder is already declared in
-`web_accessible_resources`), and in the preview harness it resolves to the
-relative path `assets/mascot.glb`.
+Exactly that path and that name.
 
-Nothing else is required: if the file is present it becomes the character on the
-next page load, if it is absent the procedural capybara in
-`../mascot/mascot-fallback.js` is used. No console error either way — the file
-is probed with `fetch` before `GLTFLoader` is invoked.
+**No GLB is shipped in this repo**, so `mascot-controller.js` passes
+`glbUrl: null` and skips the fetch. A missing `chrome-extension://…/assets/mascot.glb`
+request shows up as a red **Errors** button on `chrome://extensions` even when
+the promise is caught — so we do not probe an absent file.
 
-**No GLB is shipped in this repo.** Nothing was downloaded from the internet
-(unclear licensing) and nothing was generated: what you see on screen today is
-the procedural capybara.
+When you drop `mascot.glb` here, set `glbUrl: NS.url("assets/mascot.glb")` in
+`mascot/mascot-controller.js` (search for `glbUrl`). Until then the procedural
+capybara in `../mascot/mascot-fallback.js` is the character.
 
 ## What the loader expects
 
