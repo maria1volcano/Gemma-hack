@@ -6,188 +6,644 @@
 <title>KidGuard - Parent Dashboard</title>
 <style>
   :root {
-    --bg: #f6f8fb;
-    --card: #ffffff;
-    --ink: #1f2937;
-    --muted: #6b7280;
-    --line: #e5e7eb;
-    --accent: #3b5bdb;
+    --bg: #171a34;
+    --bg-deep: #101329;
+    --surface: #fffdf7;
+    --surface-soft: #f5f7f0;
+    --ink: #15172b;
+    --muted: #74788b;
+    --line: #e7e5dc;
+    --accent: #c8fb4b;
+    --accent-ink: #18210f;
+    --accent-soft: #ecffd0;
+    --on-dark: #f8f8ff;
+    --on-dark-muted: #c9cbe0;
+    --critical: #b42318;
+    --critical-bg: #fff1f0;
+    --high: #b54708;
+    --high-bg: #fff4e5;
+    --medium: #936900;
+    --medium-bg: #fff8db;
+    --info: #31506f;
+    --info-bg: #edf4fb;
+    --shadow: 0 24px 70px rgba(7, 10, 25, 0.24);
+    --soft-shadow: 0 14px 30px rgba(16, 19, 41, 0.11);
   }
+
   * { box-sizing: border-box; }
+
   body {
     margin: 0;
     font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     background: var(--bg);
-    color: var(--ink);
+    color: var(--on-dark);
     font-size: 16px;
     line-height: 1.55;
+    overflow-x: hidden;
   }
-  .wrap { max-width: 820px; margin: 0 auto; padding: 28px 20px 64px; }
 
-  header.page {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-  header.page h1 {
-    margin: 0;
-    font-size: 28px;
-    letter-spacing: -.01em;
-  }
-  header.page p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
-  .grow { flex: 1; }
-
-  .statusbar {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 12px 16px;
-    margin-bottom: 18px;
-  }
-  .dot {
-    width: 11px;
-    height: 11px;
-    border-radius: 50%;
-    background: #9ca3af;
-    display: inline-block;
-    flex: none;
-  }
-  .dot.ok { background: #10b981; box-shadow: 0 0 0 4px #10b98126; }
-  .dot.off { background: #f59e0b; box-shadow: 0 0 0 4px #f59e0b26; }
-  .dot.demo { background: #8b5cf6; box-shadow: 0 0 0 4px #8b5cf626; }
-  #statusText { font-weight: 600; font-size: 15px; }
-  .meta { color: var(--muted); font-size: 14px; }
-  .spacer { flex: 1; }
   button {
     font: inherit;
-    font-size: 14px;
-    border-radius: 10px;
+    min-height: 44px;
+    border-radius: 16px;
     border: 1px solid var(--line);
-    background: #fff;
+    background: var(--surface);
     color: var(--ink);
-    padding: 8px 14px;
+    padding: 9px 15px;
     cursor: pointer;
+    font-weight: 800;
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
   }
-  button:hover { background: #f3f4f6; }
-  button.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-  }
-  button.primary:hover { background: #32499f; }
 
-  .notice {
-    background: #fffbeb;
-    border: 1px solid #fcd34d;
-    color: #78350f;
-    border-radius: 14px;
-    padding: 16px 18px;
-    margin-bottom: 18px;
-    font-size: 15px;
+  button:hover { background: var(--surface-soft); transform: translateY(-1px); }
+  button:focus-visible, summary:focus-visible {
+    outline: 3px solid rgba(200, 251, 75, 0.62);
+    outline-offset: 2px;
   }
-  .notice strong { display: block; font-size: 16px; margin-bottom: 2px; }
-  .notice code {
-    background: #fef3c7;
-    border-radius: 6px;
-    padding: 1px 6px;
-    font-size: 13px;
-  }
-  .hidden { display: none !important; }
 
-  ul.timeline { list-style: none; margin: 0; padding: 0; }
-  ul.timeline li {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-left: 5px solid var(--badge, #9ca3af);
-    border-radius: 14px;
-    padding: 14px 18px;
-    margin-bottom: 10px;
+  .decor {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
   }
-  .row1 {
+
+  .decor span {
+    position: absolute;
+    display: block;
+    border-radius: 999px;
+    opacity: 0.42;
+  }
+
+  .decor .orb-a {
+    width: 420px;
+    height: 420px;
+    right: -140px;
+    top: -170px;
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .decor .orb-b {
+    width: 360px;
+    height: 360px;
+    left: -150px;
+    top: 400px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .decor .ring-a,
+  .decor .ring-b {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: transparent;
+  }
+
+  .decor .ring-a {
+    width: 760px;
+    height: 760px;
+    right: -230px;
+    top: -260px;
+  }
+
+  .decor .ring-b {
+    width: 640px;
+    height: 640px;
+    left: -250px;
+    bottom: -260px;
+  }
+
+  .decor .dot-a,
+  .decor .dot-b,
+  .decor .dot-c {
+    width: 28px;
+    height: 28px;
+    background: rgba(200, 251, 75, 0.55);
+  }
+
+  .decor .dot-a { top: 132px; left: 21%; }
+  .decor .dot-b { top: 266px; right: 13%; width: 18px; height: 18px; background: rgba(134, 120, 255, 0.64); }
+  .decor .dot-c { bottom: 160px; right: 25%; width: 46px; height: 46px; background: rgba(255, 255, 255, 0.09); }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 42px 20px 56px;
+  }
+
+  .page-header {
     display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 28px;
+    margin-bottom: 26px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
     align-items: center;
+    gap: 8px;
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    margin: 0;
+    max-width: 680px;
+    font-size: clamp(38px, 7vw, 72px);
+    line-height: 0.98;
+    letter-spacing: 0;
+  }
+
+  .subtitle {
+    margin: 18px 0 0;
+    color: var(--on-dark-muted);
+    max-width: 560px;
+    font-size: 18px;
+  }
+
+  .header-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
     gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 4px;
-  }
-  .time {
-    font-variant-numeric: tabular-nums;
-    color: var(--muted);
+    color: var(--on-dark-muted);
     font-size: 14px;
+    white-space: nowrap;
   }
-  .badge {
-    display: inline-block;
+
+  .live-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 999px;
+    padding: 9px 13px;
+    font-weight: 700;
+    color: var(--on-dark);
+  }
+
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #98a2b3; }
+  .dot.connected { background: var(--accent); box-shadow: 0 0 0 4px rgba(200, 251, 75, 0.18); }
+  .dot.demo { background: #5b6ee1; box-shadow: 0 0 0 4px rgba(91, 110, 225, 0.14); }
+  .dot.waiting, .dot.offline { background: #d89614; box-shadow: 0 0 0 4px rgba(216, 150, 20, 0.15); }
+
+  .hero-visual {
+    position: relative;
+    flex: 0 0 220px;
+    min-height: 190px;
+  }
+
+  .family-bubble {
+    position: absolute;
+    right: 22px;
+    top: 6px;
+    width: 174px;
+    height: 174px;
+    border-radius: 50%;
+    background: #e7ffd1;
+    box-shadow: 0 24px 52px rgba(0, 0, 0, 0.22);
+  }
+
+  .family-bubble::before,
+  .family-bubble::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background: #ff9c58;
+  }
+
+  .family-bubble::before {
+    width: 62px;
+    height: 62px;
+    left: 38px;
+    top: 52px;
+    box-shadow: 52px 8px 0 #ffe0a8, 24px 68px 0 #ffffff;
+  }
+
+  .family-bubble::after {
+    width: 108px;
+    height: 52px;
+    left: 34px;
+    bottom: 28px;
+    border-radius: 34px;
+    background: #2f6f73;
+  }
+
+  .orbit-card {
+    position: absolute;
+    left: 0;
+    bottom: 8px;
+    width: 118px;
+    border-radius: 24px;
+    padding: 14px;
+    background: var(--surface);
+    color: var(--ink);
+    box-shadow: var(--soft-shadow);
+    font-weight: 900;
+  }
+
+  .orbit-card span {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: .04em;
-    text-transform: uppercase;
+  }
+
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 28px;
+    padding: 18px;
+    min-height: 128px;
+    box-shadow: var(--soft-shadow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .summary-card::before {
+    content: attr(data-icon);
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    font-weight: 900;
+  }
+
+  .summary-card span { display: block; color: var(--muted); font-size: 13px; font-weight: 800; }
+  .summary-card strong { display: block; margin-top: 20px; padding-right: 46px; font-size: 30px; line-height: 1.05; }
+  .summary-card small { display: block; margin-top: 8px; color: var(--muted); max-width: 210px; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 304px;
+    gap: 20px;
+    align-items: start;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 32px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .activity-head {
+    padding: 28px 30px 18px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  h2 { margin: 0; font-size: 26px; line-height: 1.12; letter-spacing: 0; }
+  .section-subtitle { margin: 5px 0 0; color: var(--muted); }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filters {
+    display: flex;
+    gap: 9px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .filter {
+    min-height: 44px;
+    white-space: nowrap;
     border-radius: 999px;
-    padding: 3px 11px;
-    background: #e5e7eb;
-    color: #374151;
+    color: #34384f;
+    background: #f0f2ea;
+    border-color: transparent;
   }
-  .summary { font-size: 16px; }
-  .url {
-    display: inline-block;
-    margin-top: 4px;
+
+  .filter[aria-pressed="true"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  .primary:hover { background: #b9ee39; }
+
+  .notice {
+    margin: 20px 30px 0;
+    border: 1px solid #f4cf79;
+    background: #fff8df;
+    color: #5f4300;
+    border-radius: 20px;
+    padding: 16px 18px;
+  }
+
+  .hidden { display: none !important; }
+
+  .timeline { padding: 8px 30px 30px; }
+  .date-group { margin-top: 28px; }
+  .date-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    color: var(--muted);
+  }
+
+  .date-heading h3 { margin: 0; font-size: 17px; color: var(--ink); }
+  .date-heading span { font-size: 13px; color: var(--muted); }
+
+  .event-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+
+  .event-card {
+    border: 1px solid var(--line);
+    border-left: 6px solid var(--urgency-color);
+    background: #fffefa;
+    border-radius: 22px;
+    padding: 16px;
+    box-shadow: 0 10px 24px rgba(21, 23, 43, 0.06);
+  }
+
+  .event-top {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .urgency {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--urgency-color);
+    background: var(--urgency-bg);
+    white-space: nowrap;
+  }
+
+  .event-title { margin: 1px 0 6px; font-weight: 900; font-size: 18px; }
+  .event-summary { margin: 0; color: #41455c; }
+
+  .event-time {
+    color: var(--muted);
     font-size: 13px;
-    color: var(--muted);
-    word-break: break-all;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
-  .empty {
-    text-align: center;
-    color: var(--muted);
-    background: var(--card);
-    border: 1px dashed var(--line);
-    border-radius: 14px;
-    padding: 34px 20px;
+
+  .event-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin: 12px 0 0;
   }
-  footer.page {
-    margin-top: 28px;
-    padding-top: 14px;
+
+  .meta-box {
+    border: 1px solid #ecece3;
+    background: #f8f8f0;
+    border-radius: 18px;
+    padding: 10px 12px;
+    min-width: 0;
+  }
+
+  .meta-box span { display: block; color: var(--muted); font-size: 12px; font-weight: 800; }
+  .meta-box strong { display: block; margin-top: 2px; font-size: 14px; font-weight: 700; overflow-wrap: anywhere; }
+
+  .details-toggle {
+    margin-top: 12px;
+    padding: 0;
+    border: 0;
+    min-height: auto;
+    background: transparent;
+    color: var(--accent);
+    font-weight: 800;
+  }
+
+  .details-toggle:hover { background: transparent; text-decoration: underline; }
+
+  .details {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
     border-top: 1px solid var(--line);
+    color: #344054;
+  }
+
+  .event-card.expanded .details { display: block; }
+  .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .detail-grid code { overflow-wrap: anywhere; white-space: normal; }
+  code { background: #edf2f7; border-radius: 8px; padding: 2px 6px; font-size: 12px; }
+
+  .side {
+    display: grid;
+    gap: 14px;
+  }
+
+  .side-card {
+    background: var(--surface);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 28px;
+    padding: 18px;
+    box-shadow: var(--soft-shadow);
+  }
+
+  .side-card h2 { font-size: 17px; margin-bottom: 10px; }
+  .side-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-top: 1px solid #eeeee5; }
+  .side-row:first-of-type { border-top: 0; }
+  .side-row span { color: var(--muted); }
+  .side-row strong { text-align: right; }
+
+  .state {
+    margin: 24px 30px 30px;
+    padding: 42px 24px;
+    text-align: center;
+    border: 1px dashed var(--line);
+    background:
+      radial-gradient(circle at 50% 0, rgba(200, 251, 75, 0.22), transparent 170px),
+      var(--surface-soft);
+    border-radius: 28px;
     color: var(--muted);
-    font-size: 13px;
+  }
+
+  .state::before {
+    content: "KG";
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 900;
+  }
+
+  .state strong { display: block; color: var(--ink); font-size: 24px; margin-bottom: 6px; }
+  .skeleton { display: grid; gap: 14px; padding: 30px; }
+  .skel-card { height: 124px; border-radius: 24px; background: linear-gradient(90deg, #f0f2ea, #fffdf7, #f0f2ea); background-size: 200% 100%; animation: shimmer 1.4s infinite; }
+
+  footer.page { margin-top: 24px; color: var(--on-dark-muted); font-size: 13px; }
+  footer.page code { color: var(--ink); }
+
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .header-meta { align-items: flex-start; }
+    .page-header { flex-direction: column; }
+    .hero-visual { display: none; }
+  }
+
+  @media (max-width: 520px) {
+    .wrap { padding: 28px 12px 42px; }
+    .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .summary-card { border-radius: 22px; padding: 15px; min-height: 130px; }
+    .summary-card strong { font-size: 24px; padding-right: 0; }
+    .summary-card small { font-size: 12px; }
+    .panel { border-radius: 28px; }
+    .activity-head { padding: 22px 18px 16px; }
+    .timeline { padding: 6px 18px 22px; }
+    .notice { margin: 18px 18px 0; }
+    h1 { font-size: 42px; }
+    .subtitle { font-size: 16px; }
+    .title-row { align-items: flex-start; flex-direction: column; }
+    .controls { width: 100%; }
+    .controls button { flex: 1; }
+    .filters { width: 100%; flex-wrap: nowrap; }
+    .event-top { grid-template-columns: 1fr auto; }
+    .urgency { grid-column: 1 / -1; width: fit-content; }
+    .event-meta, .detail-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
+<div class="decor" aria-hidden="true">
+  <span class="orb-a"></span>
+  <span class="orb-b"></span>
+  <span class="ring-a"></span>
+  <span class="ring-b"></span>
+  <span class="dot-a"></span>
+  <span class="dot-b"></span>
+  <span class="dot-c"></span>
+</div>
 <div class="wrap">
-  <header class="page">
-    <div class="grow">
-      <h1>KidGuard &mdash; Parent Dashboard</h1>
-      <p>A live view of what KidGuard did while your child was browsing.</p>
+  <header class="page-header">
+    <div>
+      <div class="eyebrow">KidGuard Parent</div>
+      <h1>Good afternoon</h1>
+      <p class="subtitle">Here is what KidGuard protected today.</p>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="family-bubble"></div>
+      <div class="orbit-card">Protected<span>Live safety view</span></div>
+    </div>
+    <div class="header-meta" aria-live="polite">
+      <span class="live-pill"><span class="dot waiting" id="dot"></span><span id="statusText">Connecting</span></span>
+      <span id="updatedText">Last updated: not yet</span>
     </div>
   </header>
 
-  <div class="statusbar">
-    <span class="dot" id="dot"></span>
-    <span id="statusText">Connecting&hellip;</span>
-    <span class="meta" id="countText">0 events</span>
-    <span class="spacer"></span>
-    <button id="demoBtn">Demo data</button>
-    <button id="refreshBtn" class="primary">Refresh now</button>
-  </div>
+  <section class="summary-grid" aria-label="Dashboard summary">
+    <div class="summary-card" data-icon="OK"><span>Child status</span><strong id="childStatus">Protected</strong><small id="childStatusHint">KidGuard is watching supported pages.</small></div>
+    <div class="summary-card" data-icon="!"><span>Critical alerts</span><strong id="criticalCount">0</strong><small id="criticalHint">need attention</small></div>
+    <div class="summary-card" data-icon="+"><span>Interventions today</span><strong id="todayCount">0</strong><small>warnings, blocks, pauses, and notifications</small></div>
+    <div class="summary-card" data-icon="ON"><span>Session</span><strong id="sessionState">Active</strong><small id="sessionHint">No pause reported.</small></div>
+  </section>
 
-  <div class="notice hidden" id="notice">
-    <strong>Waiting for backend&hellip;</strong>
-    Can't reach <code>http://127.0.0.1:8000/events</code> yet. Start the API with
-    <code>uvicorn backend.main:app --port 8000</code>, or press <em>Demo data</em> to preview this dashboard.
-    Polling continues automatically.
-  </div>
+  <main class="layout">
+    <section class="panel" aria-labelledby="activityTitle">
+      <div class="activity-head">
+        <div class="title-row">
+          <div>
+            <h2 id="activityTitle">Safety activity</h2>
+            <p class="section-subtitle">Grouped by day, with the moments that need attention easy to spot.</p>
+          </div>
+          <div class="controls">
+            <button id="demoBtn" type="button">Demo data</button>
+            <button id="refreshBtn" class="primary" type="button">Refresh</button>
+          </div>
+        </div>
+        <div class="filters" id="filters" role="toolbar" aria-label="Filter safety activity"></div>
+      </div>
 
-  <ul class="timeline" id="timeline"></ul>
-  <div class="empty hidden" id="empty">No activity recorded yet. Browse a demo page and events will appear here.</div>
+      <div class="notice hidden" id="notice" role="status">
+        <strong>We could not load the latest safety activity.</strong>
+        The local backend is not responding at <code>http://127.0.0.1:8000/events</code>. Polling continues automatically, or use demo data to preview the dashboard.
+      </div>
+
+      <div class="skeleton" id="loading" aria-label="Loading safety activity">
+        <div class="skel-card"></div>
+        <div class="skel-card"></div>
+      </div>
+
+      <div class="timeline hidden" id="timeline" aria-live="polite"></div>
+      <div class="state hidden" id="empty"><strong>Everything looks calm</strong>KidGuard has not recorded any safety events yet. New interventions will appear here.</div>
+      <div class="state hidden" id="noResults"><strong id="noResultsTitle">No events found</strong><span id="noResultsText"></span><br><button id="showAllBtn" type="button">Show all events</button></div>
+    </section>
+
+    <aside class="side" aria-label="Session details">
+      <section class="side-card">
+        <h2>Current session</h2>
+        <div class="side-row"><span>Status</span><strong id="sideSession">Active</strong></div>
+        <div class="side-row"><span>Warnings</span><strong id="warningCount">0</strong></div>
+        <div class="side-row"><span>Blocked pages</span><strong id="blockCount">0</strong></div>
+        <div class="side-row"><span>Parent notices</span><strong id="noticeCount">0</strong></div>
+        <button id="resumeBtn" class="primary hidden" type="button">Resume session</button>
+      </section>
+      <section class="side-card">
+        <h2>Connection</h2>
+        <div class="side-row"><span>Source</span><strong id="sourceText">Live backend</strong></div>
+        <div class="side-row"><span>Refresh cadence</span><strong>2 seconds</strong></div>
+        <div class="side-row"><span>Events shown</span><strong id="shownCount">0</strong></div>
+      </section>
+    </aside>
+  </main>
 
   <footer class="page">
-    KidGuard hackathon demo. Everything runs locally on this computer &mdash; events are read from
-    <code>http://127.0.0.1:8000/events</code> and nothing is uploaded anywhere.
+    Events are read locally from <code>http://127.0.0.1:8000/events</code>. Demo mode is isolated in this page and does not change backend data.
   </footer>
 </div>
 
@@ -195,253 +651,483 @@
 (function () {
   "use strict";
 
-  var API = "http://127.0.0.1:8000/events";
+  var EVENTS_API = "http://127.0.0.1:8000/events";
+  var STATE_API = "http://127.0.0.1:8000/state";
   var POLL_MS = 2000;
   var FETCH_TIMEOUT_MS = 4000;
 
-  var dot = document.getElementById("dot");
-  var statusText = document.getElementById("statusText");
-  var countText = document.getElementById("countText");
-  var notice = document.getElementById("notice");
-  var timeline = document.getElementById("timeline");
-  var empty = document.getElementById("empty");
-  var demoBtn = document.getElementById("demoBtn");
-  var refreshBtn = document.getElementById("refreshBtn");
-
-  var demoMode = false;
-  var demoEvents = [];
-  var lastEvents = [];
-  var connected = false;
-  var timer = null;
-
-  var BADGES = {
-    block_page:        { label: "Blocked",     color: "#dc2626", bg: "#fee2e2", fg: "#991b1b" },
-    warn_kid:          { label: "Warned",      color: "#f59e0b", bg: "#fef3c7", fg: "#92400e" },
-    highlight_element: { label: "Highlighted", color: "#0ea5e9", bg: "#e0f2fe", fg: "#075985" },
-    allow_page:        { label: "Allowed",     color: "#10b981", bg: "#d1fae5", fg: "#065f46" },
-    notify_parent:     { label: "Notified",    color: "#8b5cf6", bg: "#ede9fe", fg: "#5b21b6" },
-    suggest_alternative: { label: "Suggested", color: "#14b8a6", bg: "#ccfbf1", fg: "#115e59" },
-    navigate:          { label: "Redirected",  color: "#3b5bdb", bg: "#e0e7ff", fg: "#3730a3" },
-    pause_session:     { label: "Paused",      color: "#6b7280", bg: "#e5e7eb", fg: "#374151" },
-    mascot:            { label: "Mascot",      color: "#ec4899", bg: "#fce7f3", fg: "#9d174d" }
+  var els = {
+    dot: document.getElementById("dot"),
+    statusText: document.getElementById("statusText"),
+    updatedText: document.getElementById("updatedText"),
+    criticalCount: document.getElementById("criticalCount"),
+    criticalHint: document.getElementById("criticalHint"),
+    todayCount: document.getElementById("todayCount"),
+    sessionState: document.getElementById("sessionState"),
+    sessionHint: document.getElementById("sessionHint"),
+    childStatus: document.getElementById("childStatus"),
+    childStatusHint: document.getElementById("childStatusHint"),
+    sideSession: document.getElementById("sideSession"),
+    warningCount: document.getElementById("warningCount"),
+    blockCount: document.getElementById("blockCount"),
+    noticeCount: document.getElementById("noticeCount"),
+    sourceText: document.getElementById("sourceText"),
+    shownCount: document.getElementById("shownCount"),
+    filters: document.getElementById("filters"),
+    notice: document.getElementById("notice"),
+    loading: document.getElementById("loading"),
+    timeline: document.getElementById("timeline"),
+    empty: document.getElementById("empty"),
+    noResults: document.getElementById("noResults"),
+    noResultsTitle: document.getElementById("noResultsTitle"),
+    noResultsText: document.getElementById("noResultsText"),
+    showAllBtn: document.getElementById("showAllBtn"),
+    demoBtn: document.getElementById("demoBtn"),
+    refreshBtn: document.getElementById("refreshBtn")
+    ,resumeBtn: document.getElementById("resumeBtn")
   };
 
-  function badgeFor(action) {
-    return BADGES[action] || { label: action || "event", color: "#9ca3af", bg: "#e5e7eb", fg: "#374151" };
-  }
+  var URGENCIES = {
+    all: { label: "All", short: "All" },
+    critical: { label: "Critical", short: "Critical", icon: "!", color: "var(--critical)", bg: "var(--critical-bg)" },
+    high: { label: "High priority", short: "High", icon: "^", color: "var(--high)", bg: "var(--high-bg)" },
+    medium: { label: "Needs review", short: "Medium", icon: "~", color: "var(--medium)", bg: "var(--medium-bg)" },
+    info: { label: "Informational", short: "Info", icon: "i", color: "var(--info)", bg: "var(--info-bg)" }
+  };
+
+  var ACTION_LABELS = {
+    warning: "Warning shown",
+    warn_kid: "Warning shown",
+    block: "Page blocked",
+    block_page: "Page blocked",
+    parent_notification: "Parent notified",
+    notify_parent: "Parent notified",
+    pause_session: "Session paused",
+    allow_page: "Page allowed",
+    allow: "Page allowed",
+    highlight_element: "Risk highlighted",
+    suggest_alternative: "Safer option suggested",
+    navigate: "Navigation guided",
+    navigate_hint: "Navigation guided"
+  };
+
+  var activeFilter = "all";
+  var demoMode = false;
+  var loading = true;
+  var connection = "waiting";
+  var lastEvents = [];
+  var expanded = {};
+  var sessionState = {};
+  var timer = null;
 
   function firstString() {
     for (var i = 0; i < arguments.length; i++) {
       var v = arguments[i];
-      if (typeof v === "string" && v.trim() !== "") { return v.trim(); }
-      if (typeof v === "number" && isFinite(v)) { return String(v); }
+      if (typeof v === "string" && v.trim() !== "") return v.trim();
+      if (typeof v === "number" && isFinite(v)) return String(v);
     }
     return "";
   }
 
-  // Accepts ISO strings, epoch seconds, epoch millis, Date-ish values. Returns ms or null.
   function toMillis(value) {
-    if (value === null || value === undefined) { return null; }
-    if (typeof value === "number" && isFinite(value)) {
-      return value > 1e11 ? value : value * 1000;
-    }
+    if (value === null || value === undefined) return null;
+    if (typeof value === "number" && isFinite(value)) return value > 1e11 ? value : value * 1000;
     if (typeof value === "string") {
       var trimmed = value.trim();
-      if (trimmed === "") { return null; }
-      if (/^\d+(\.\d+)?$/.test(trimmed)) { return toMillis(parseFloat(trimmed)); }
+      if (!trimmed) return null;
+      if (/^\d+(\.\d+)?$/.test(trimmed)) return toMillis(parseFloat(trimmed));
       var parsed = Date.parse(trimmed);
       return isNaN(parsed) ? null : parsed;
     }
     return null;
   }
 
-  function normalize(raw, index) {
-    var e = (raw && typeof raw === "object") ? raw : {};
-    var ms = toMillis(e.ts);
-    if (ms === null) { ms = toMillis(e.time); }
-    if (ms === null) { ms = toMillis(e.timestamp); }
-    if (ms === null) { ms = toMillis(e.created_at); }
-
-    var action = firstString(e.action, e.tool, e.type, e.event, "event");
-    var summary = firstString(e.summary, e.message, e.detail, e.kid_message, e.reason, e.text);
-    var url = firstString(e.url, e.page_url, e.href);
-
-    if (summary === "") { summary = "(no details provided)"; }
-
-    return { ms: ms, order: index, action: action, summary: summary, url: url };
+  function dateKey(ms) {
+    if (ms === null) return "unknown";
+    var d = new Date(ms);
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
   }
 
-  function normalizeList(data) {
-    var arr = Array.isArray(data) ? data
-            : (data && Array.isArray(data.events)) ? data.events
-            : [];
-    var out = [];
-    for (var i = 0; i < arr.length; i++) {
-      try { out.push(normalize(arr[i], i)); } catch (err) { /* skip malformed row */ }
-    }
-    out.sort(function (a, b) {
-      if (a.ms !== null && b.ms !== null && a.ms !== b.ms) { return b.ms - a.ms; }
-      if (a.ms !== null && b.ms === null) { return -1; }
-      if (a.ms === null && b.ms !== null) { return 1; }
-      return b.order - a.order;
-    });
-    return out;
+  function isToday(ms) {
+    if (ms === null) return false;
+    return dateKey(ms) === dateKey(Date.now());
+  }
+
+  function formatDateHeading(ms) {
+    if (ms === null) return "Date unavailable";
+    var now = new Date();
+    var yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1).getTime();
+    if (dateKey(ms) === dateKey(now.getTime())) return "Today";
+    if (dateKey(ms) === dateKey(yesterday)) return "Yesterday";
+    return new Intl.DateTimeFormat(undefined, { month: "long", day: "numeric", year: "numeric" }).format(new Date(ms));
   }
 
   function formatTime(ms) {
-    if (ms === null) { return "--:--:--"; }
-    try {
-      return new Date(ms).toLocaleTimeString();
-    } catch (err) {
-      return "--:--:--";
-    }
+    if (ms === null) return "Time unavailable";
+    return new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).format(new Date(ms));
   }
 
-  function render(events) {
-    timeline.textContent = "";
-    for (var i = 0; i < events.length; i++) {
-      var ev = events[i];
-      var b = badgeFor(ev.action);
+  function hostFromUrl(url) {
+    try { return new URL(url).hostname.replace(/^www\./, ""); } catch (_) { return url || "Site not recorded"; }
+  }
 
-      var li = document.createElement("li");
-      li.style.setProperty("--badge", b.color);
+  function normalizeAction(action) {
+    return String(action || "event").trim().toLowerCase();
+  }
 
-      var row = document.createElement("div");
-      row.className = "row1";
+  function stableId(e, index) {
+    return firstString(e.id, e.event_id, e.uuid) ||
+      [firstString(e.timestamp, e.ts, e.time, e.created_at), firstString(e.type, e.action, e.tool), firstString(e.summary, e.message), firstString(e.url)].join("|") ||
+      "event-" + index;
+  }
 
-      var t = document.createElement("span");
-      t.className = "time";
-      t.textContent = formatTime(ev.ms);
-      row.appendChild(t);
+  function detectSignals(event) {
+    var text = (event.summary + " " + event.url + " " + event.type).toLowerCase();
+    var signals = [];
+    if (/password|login|sign in|credential/.test(text)) signals.push("Password or sign-in request");
+    if (/phishing|fake|steal|scam/.test(text)) signals.push("Possible scam or phishing");
+    if (/free|prize|reward|robux|v-bucks|giveaway/.test(text)) signals.push("Reward bait");
+    if (/hurry|urgent|limited/.test(text)) signals.push("Urgency language");
+    if (/blocked|block/.test(text)) signals.push("Blocked content");
+    if (/pause/.test(text)) signals.push("Session pause");
+    return signals;
+  }
 
-      var badge = document.createElement("span");
-      badge.className = "badge";
-      badge.textContent = b.label;
-      badge.style.background = b.bg;
-      badge.style.color = b.fg;
-      badge.title = ev.action;
-      row.appendChild(badge);
+  // Central urgency model. The backend currently sends no severity field, so
+  // this normalizes real event fields: type/action plus parent-facing summary.
+  function getEventUrgency(event) {
+    var explicit = normalizeAction(event.raw.severity || event.raw.urgency || event.raw.priority);
+    if (/critical|urgent|immediate/.test(explicit)) return "critical";
+    if (/high/.test(explicit)) return "high";
+    if (/medium|review|warn/.test(explicit)) return "medium";
+    if (/low|info|informational|safe/.test(explicit)) return "info";
 
-      li.appendChild(row);
+    var action = normalizeAction(event.type);
+    var hay = (action + " " + event.summary + " " + event.url).toLowerCase();
+    if (/pause_session|session paused|parent_notification|notify_parent|phishing|password|credential|personal data|explicit|dangerous|steal/.test(hay)) return "critical";
+    if (/block_page|blocked page|^block$|bypass|download|unsafe/.test(hay)) return "high";
+    if (/warning|warn_kid|clickbait|scam|misleading|reward bait|free robux|prize/.test(hay)) return "medium";
+    return "info";
+  }
 
-      var s = document.createElement("div");
-      s.className = "summary";
-      s.textContent = ev.summary;
-      li.appendChild(s);
+  function getEventTitle(event) {
+    var urgency = event.urgency;
+    var text = event.summary.toLowerCase();
+    if (urgency === "critical" && /password|credential|phishing|steal/.test(text)) return "Password request blocked";
+    if (event.type === "parent_notification" || event.type === "notify_parent") return "Parent notification";
+    if (/pause/.test(text) || event.type === "pause_session") return "Session paused";
+    if (/block/.test(event.type) || /blocked/.test(text)) return "Blocked page";
+    if (/warn/.test(event.type) || /warning/.test(text)) return "Warning shown";
+    if (/allow/.test(event.type)) return "Safe page checked";
+    return "Safety activity recorded";
+  }
 
-      if (ev.url) {
-        var u = document.createElement("span");
-        u.className = "url";
-        u.textContent = ev.url;
-        li.appendChild(u);
+  function getEventSummary(event) {
+    var summary = event.summary || "KidGuard recorded a safety event.";
+    return summary.replace(/\btool_call=\S+/gi, "").replace(/\s+/g, " ").trim();
+  }
+
+  function getActionLabel(event) {
+    return ACTION_LABELS[event.type] || ACTION_LABELS[normalizeAction(event.raw.action)] || "Activity logged";
+  }
+
+  function normalizeEvent(raw, index) {
+    var e = raw && typeof raw === "object" ? raw : {};
+    var ms = toMillis(e.timestamp);
+    if (ms === null) ms = toMillis(e.ts);
+    if (ms === null) ms = toMillis(e.time);
+    if (ms === null) ms = toMillis(e.created_at);
+    var event = {
+      id: stableId(e, index),
+      order: index,
+      ms: ms,
+      iso: ms === null ? "" : new Date(ms).toISOString(),
+      type: normalizeAction(firstString(e.type, e.action, e.tool, e.event, "event")),
+      summary: firstString(e.summary, e.message, e.detail, e.kid_message, e.reason, e.text, "KidGuard recorded a safety event."),
+      url: firstString(e.url, e.page_url, e.href),
+      raw: e
+    };
+    event.urgency = getEventUrgency(event);
+    event.signals = Array.isArray(e.signals) ? e.signals.map(String) : detectSignals(event);
+    event.title = getEventTitle(event);
+    event.parentSummary = getEventSummary(event);
+    event.actionLabel = getActionLabel(event);
+    return event;
+  }
+
+  function normalizeList(data) {
+    var arr = Array.isArray(data) ? data : data && Array.isArray(data.events) ? data.events : [];
+    var byId = {};
+    for (var i = 0; i < arr.length; i++) {
+      var ev = normalizeEvent(arr[i], i);
+      byId[ev.id] = ev;
+    }
+    return Object.keys(byId).map(function (id) { return byId[id]; }).sort(function (a, b) {
+      if (a.ms !== null && b.ms !== null && a.ms !== b.ms) return b.ms - a.ms;
+      if (a.ms !== null && b.ms === null) return -1;
+      if (a.ms === null && b.ms !== null) return 1;
+      return b.order - a.order;
+    });
+  }
+
+  function countsFor(events) {
+    var counts = { all: events.length, critical: 0, high: 0, medium: 0, info: 0 };
+    events.forEach(function (ev) { counts[ev.urgency] += 1; });
+    return counts;
+  }
+
+  function filteredEvents() {
+    if (activeFilter === "all") return lastEvents.slice();
+    return lastEvents.filter(function (ev) { return ev.urgency === activeFilter; });
+  }
+
+  function groupEvents(events) {
+    var groups = [];
+    var index = {};
+    events.forEach(function (ev) {
+      var key = dateKey(ev.ms);
+      if (!index[key]) {
+        index[key] = { key: key, ms: ev.ms, label: formatDateHeading(ev.ms), events: [] };
+        groups.push(index[key]);
       }
-
-      timeline.appendChild(li);
-    }
-
-    countText.textContent = events.length === 1 ? "1 event" : events.length + " events";
-    empty.classList.toggle("hidden", events.length > 0 || !connected && !demoMode);
+      index[key].events.push(ev);
+    });
+    return groups;
   }
 
-  function setStatus(state) {
-    dot.className = "dot";
-    if (state === "demo") {
-      dot.classList.add("demo");
-      statusText.textContent = "Demo data (backend ignored)";
-      notice.classList.add("hidden");
-    } else if (state === "connected") {
-      dot.classList.add("ok");
-      statusText.textContent = "Connected to KidGuard backend";
-      notice.classList.add("hidden");
-    } else {
-      dot.classList.add("off");
-      statusText.textContent = "Waiting for backend\u2026";
-      notice.classList.remove("hidden");
-    }
+  function el(tag, attrs, text) {
+    var node = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      if (k === "class") node.className = attrs[k];
+      else if (k === "style") Object.keys(attrs[k]).forEach(function (name) { node.style.setProperty(name, attrs[k][name]); });
+      else node.setAttribute(k, attrs[k]);
+    });
+    if (text !== undefined) node.textContent = text;
+    return node;
   }
 
-  function fetchEvents() {
-    if (demoMode) { return Promise.resolve(); }
+  function renderFilters() {
+    var counts = countsFor(lastEvents);
+    var items = ["all", "critical", "high", "medium", "info"];
+    els.filters.textContent = "";
+    items.forEach(function (key) {
+      var b = el("button", { type: "button", class: "filter", "aria-pressed": String(activeFilter === key) }, URGENCIES[key].short + " " + counts[key]);
+      b.addEventListener("click", function () { activeFilter = key; render(); });
+      els.filters.appendChild(b);
+    });
+  }
 
+  function renderSummary() {
+    var counts = countsFor(lastEvents);
+    var today = lastEvents.filter(function (ev) { return isToday(ev.ms) && ev.urgency !== "info"; }).length;
+    var paused = sessionState && sessionState.paused === true;
+    els.criticalCount.textContent = String(counts.critical);
+    els.criticalHint.textContent = counts.critical === 1 ? "needs attention" : "need attention";
+    els.todayCount.textContent = String(today);
+    els.sessionState.textContent = paused ? "Paused" : "Active";
+    els.sessionHint.textContent = paused ? "Browsing is paused until resumed." : "No pause reported.";
+    els.sideSession.textContent = paused ? "Paused" : "Active";
+    els.resumeBtn.classList.toggle("hidden", !paused || demoMode);
+    els.childStatus.textContent = counts.critical > 0 ? "Needs review" : "Protected";
+    els.childStatusHint.textContent = counts.critical > 0 ? "Review the critical alerts below." : "KidGuard is watching supported pages.";
+    els.warningCount.textContent = String(lastEvents.filter(function (ev) { return /warn|warning/.test(ev.type); }).length);
+    els.blockCount.textContent = String(lastEvents.filter(function (ev) { return /block/.test(ev.type) || /blocked/.test(ev.summary.toLowerCase()); }).length);
+    els.noticeCount.textContent = String(lastEvents.filter(function (ev) { return /notification|notify/.test(ev.type); }).length);
+  }
+
+  function renderEventCard(ev) {
+    var u = URGENCIES[ev.urgency];
+    var li = el("li");
+    var card = el("article", {
+      class: "event-card" + (expanded[ev.id] ? " expanded" : ""),
+      style: { "--urgency-color": u.color, "--urgency-bg": u.bg },
+      "aria-label": u.label + ": " + ev.title
+    });
+
+    var top = el("div", { class: "event-top" });
+    top.appendChild(el("span", { class: "urgency" }, u.icon + " " + u.label));
+
+    var body = el("div");
+    body.appendChild(el("h4", { class: "event-title" }, ev.title));
+    body.appendChild(el("p", { class: "event-summary" }, ev.parentSummary));
+    top.appendChild(body);
+
+    var timeAttrs = { class: "event-time" };
+    if (ev.iso) timeAttrs.dateTime = ev.iso;
+    top.appendChild(el("time", timeAttrs, formatTime(ev.ms)));
+    card.appendChild(top);
+
+    var meta = el("div", { class: "event-meta" });
+    var site = el("div", { class: "meta-box" });
+    site.appendChild(el("span", {}, "Site"));
+    site.appendChild(el("strong", {}, hostFromUrl(ev.url)));
+    meta.appendChild(site);
+    var action = el("div", { class: "meta-box" });
+    action.appendChild(el("span", {}, "KidGuard action"));
+    action.appendChild(el("strong", {}, ev.actionLabel));
+    meta.appendChild(action);
+    card.appendChild(meta);
+
+    var btn = el("button", { type: "button", class: "details-toggle", "aria-expanded": String(!!expanded[ev.id]) }, expanded[ev.id] ? "Hide details" : "View details");
+    btn.addEventListener("click", function () { expanded[ev.id] = !expanded[ev.id]; render(); });
+    card.appendChild(btn);
+
+    var details = el("div", { class: "details" });
+    var grid = el("div", { class: "detail-grid" });
+    [
+      ["Detected signals", ev.signals.length ? ev.signals.join(" · ") : "No specific signals recorded"],
+      ["Backend type", ev.type],
+      ["Full URL", ev.url || "Not recorded"],
+      ["Original timestamp", ev.iso || "Missing or invalid"]
+    ].forEach(function (pair) {
+      var box = el("div", { class: "meta-box" });
+      box.appendChild(el("span", {}, pair[0]));
+      box.appendChild(el(pair[0] === "Full URL" ? "code" : "strong", {}, pair[1]));
+      grid.appendChild(box);
+    });
+    details.appendChild(grid);
+    card.appendChild(details);
+
+    li.appendChild(card);
+    return li;
+  }
+
+  function renderTimeline(events) {
+    els.timeline.textContent = "";
+    groupEvents(events).forEach(function (group) {
+      var section = el("section", { class: "date-group", "aria-labelledby": "date-" + group.key });
+      var head = el("div", { class: "date-heading" });
+      head.appendChild(el("h3", { id: "date-" + group.key }, group.label));
+      head.appendChild(el("span", {}, group.events.length === 1 ? "1 event" : group.events.length + " events"));
+      section.appendChild(head);
+      var list = el("ul", { class: "event-list" });
+      group.events.forEach(function (ev) { list.appendChild(renderEventCard(ev)); });
+      section.appendChild(list);
+      els.timeline.appendChild(section);
+    });
+  }
+
+  function setConnection(state) {
+    connection = state;
+    els.dot.className = "dot " + state;
+    els.statusText.textContent = state === "connected" ? "Live" : state === "demo" ? "Demo mode" : state === "offline" ? "Offline" : "Reconnecting";
+    els.sourceText.textContent = state === "demo" ? "Demo data" : "Live backend";
+    els.notice.classList.toggle("hidden", state === "connected" || state === "demo" || loading);
+  }
+
+  function render() {
+    var shown = filteredEvents();
+    renderFilters();
+    renderSummary();
+    els.shownCount.textContent = String(shown.length);
+    els.loading.classList.toggle("hidden", !loading);
+    els.timeline.classList.toggle("hidden", loading || shown.length === 0);
+    els.empty.classList.toggle("hidden", loading || lastEvents.length > 0 || connection === "offline");
+    els.noResults.classList.toggle("hidden", loading || lastEvents.length === 0 || shown.length > 0);
+    if (shown.length === 0 && lastEvents.length > 0) {
+      els.noResultsTitle.textContent = "No " + URGENCIES[activeFilter].short.toLowerCase() + " events";
+      els.noResultsText.textContent = "No " + URGENCIES[activeFilter].label.toLowerCase() + " events in this period.";
+    }
+    renderTimeline(shown);
+  }
+
+  function fetchJson(url) {
     var controller = new AbortController();
-    var killer = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+    var timeout = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+    return fetch(url, { signal: controller.signal, cache: "no-store" }).then(function (res) {
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    });
+  }
 
-    return fetch(API, { signal: controller.signal, cache: "no-store" })
-      .then(function (res) {
-        if (!res.ok) { throw new Error("HTTP " + res.status); }
-        return res.json();
-      })
-      .then(function (data) {
-        connected = true;
-        lastEvents = normalizeList(data);
-        setStatus("connected");
-        render(lastEvents);
+  function postJson(url) {
+    var controller = new AbortController();
+    var timeout = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+    return fetch(url, { method: "POST", signal: controller.signal }).then(function (res) {
+      clearTimeout(timeout);
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      return res.json();
+    });
+  }
+
+  function fetchAll() {
+    if (demoMode) return Promise.resolve();
+    return Promise.all([fetchJson(EVENTS_API), fetchJson(STATE_API).catch(function () { return {}; })])
+      .then(function (parts) {
+        lastEvents = normalizeList(parts[0]);
+        sessionState = parts[1] || {};
+        loading = false;
+        setConnection("connected");
+        els.updatedText.textContent = "Last updated: " + formatTime(Date.now());
+        render();
       })
       .catch(function () {
-        // Unreachable backend is an expected state during the demo, not a crash.
-        connected = false;
-        setStatus("waiting");
-        render([]);
-      })
-      .then(function () {
-        clearTimeout(killer);
+        loading = false;
+        setConnection(lastEvents.length ? "offline" : "waiting");
+        if (!lastEvents.length) render();
       });
   }
 
-  function makeDemoEvents() {
+  function demoEvents() {
     var now = Date.now();
-    return [
-      {
-        ts: new Date(now - 5000).toISOString(),
-        action: "block_page",
-        summary: "Blocked a fake login page asking for a Star Quest password. Sam was sent back to Classroom.",
-        url: "http://127.0.0.1:8765/demo_sites/phishing.html"
-      },
-      {
-        ts: new Date(now - 62000).toISOString(),
-        action: "warn_kid",
-        summary: "Warned Sam about a prize page promising free game money. Sam chose to leave.",
-        url: "http://127.0.0.1:8765/demo_sites/clickbait.html"
-      },
-      {
-        ts: new Date(now - 240000).toISOString(),
-        action: "allow_page",
-        summary: "Checked the school reading list page and found nothing to worry about.",
-        url: "http://127.0.0.1:8765/demo_sites/ok_school.html"
-      }
-    ];
+    return normalizeList([
+      { timestamp: new Date(now - 3 * 60000).toISOString(), type: "parent_notification", summary: "Blocked a fake rewards page asking for a password. Parent notification triggered.", url: "https://free-rewards.example/login" },
+      { timestamp: new Date(now - 18 * 60000).toISOString(), type: "warning", summary: "Warned Sam about a page promising free game money with urgency language.", url: "https://games.example/prize" },
+      { timestamp: new Date(now - 64 * 60000).toISOString(), type: "block", summary: "Blocked page: suspicious sign in form. Safer alternative: classroom.html", url: "https://unknown-login.example" },
+      { timestamp: new Date(now - 26 * 60 * 60000).toISOString(), type: "allow_page", summary: "Checked the school reading list page and found nothing to worry about.", url: "https://www.wikipedia.org" },
+      { timestamp: new Date(now - 50 * 60 * 60000).toISOString(), type: "warning", summary: "Warning shown for misleading clickbait headline.", url: "https://news.example/story" }
+    ]);
   }
 
   function toggleDemo() {
     demoMode = !demoMode;
+    loading = false;
     if (demoMode) {
-      demoEvents = normalizeList(makeDemoEvents());
-      demoBtn.textContent = "Live data";
-      setStatus("demo");
-      render(demoEvents);
+      lastEvents = demoEvents();
+      sessionState = { paused: false };
+      els.demoBtn.textContent = "Live data";
+      setConnection("demo");
+      els.updatedText.textContent = "Last updated: " + formatTime(Date.now());
+      render();
     } else {
-      demoBtn.textContent = "Demo data";
-      setStatus(connected ? "connected" : "waiting");
-      render(connected ? lastEvents : []);
-      fetchEvents();
+      els.demoBtn.textContent = "Demo data";
+      setConnection("waiting");
+      fetchAll();
     }
   }
 
-  demoBtn.addEventListener("click", toggleDemo);
-  refreshBtn.addEventListener("click", function () {
+  els.demoBtn.addEventListener("click", toggleDemo);
+  els.refreshBtn.addEventListener("click", function () {
     if (demoMode) {
-      demoEvents = normalizeList(makeDemoEvents());
-      render(demoEvents);
+      lastEvents = demoEvents();
+      render();
     } else {
-      fetchEvents();
+      fetchAll();
     }
   });
+  els.showAllBtn.addEventListener("click", function () { activeFilter = "all"; render(); });
+  els.resumeBtn.addEventListener("click", function () {
+    els.resumeBtn.disabled = true;
+    postJson("http://127.0.0.1:8000/resume")
+      .then(function (state) {
+        sessionState = state || {};
+        fetchAll();
+      })
+      .catch(function () {
+        setConnection("offline");
+        render();
+      })
+      .then(function () {
+        els.resumeBtn.disabled = false;
+      });
+  });
 
-  setStatus("waiting");
-  render([]);
-  fetchEvents();
-  timer = setInterval(fetchEvents, POLL_MS);
-
+  setConnection("waiting");
+  render();
+  fetchAll();
+  timer = setInterval(fetchAll, POLL_MS);
   window.addEventListener("beforeunload", function () { clearInterval(timer); });
 })();
 </script>
