@@ -24,7 +24,7 @@ export type MascotCorner =
   | "bottom-right";
 
 export type MascotCommand =
-  | { type: "SET_MOOD"; mood: MascotMood }
+  | { type: "SET_MOOD"; mood: MascotMood; message?: string }
   | { type: "POINT_TO_ELEMENT"; target: TargetRect; message?: string }
   | { type: "MOVE_TO_CORNER"; corner: MascotCorner }
   | { type: "SHOW" }

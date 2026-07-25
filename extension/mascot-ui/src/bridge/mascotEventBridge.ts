@@ -103,8 +103,16 @@ export function validateMascotCommand(
   }
 
   switch (value.type) {
-    case "SET_MOOD":
-      return isMascotMood(value.mood) ? { type: "SET_MOOD", mood: value.mood } : null;
+    case "SET_MOOD": {
+      const message = sanitizeMessage(value.message);
+      return isMascotMood(value.mood)
+        ? {
+            type: "SET_MOOD",
+            mood: value.mood,
+            ...(message ? { message } : {}),
+          }
+        : null;
+    }
     case "POINT_TO_ELEMENT": {
       const target = validateTargetRect(value.target, viewport);
       const message = sanitizeMessage(value.message);

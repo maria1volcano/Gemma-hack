@@ -120,7 +120,7 @@ export function MascotOverlay(): React.JSX.Element {
           <PlaceholderMascot pointAngle={pointAngle} />
         </Canvas>
         <div className="mascot-status" aria-hidden="true">
-          {mascot.mood === "point" ? (mascot.pointMessage ?? "Look here") : mascot.mood}
+          {mascot.coachingMessage ?? mascot.mood}
         </div>
       </div>
     </div>
