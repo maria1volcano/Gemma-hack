@@ -24,7 +24,8 @@
 const BACKEND = "http://127.0.0.1:8000";
 const REQUEST_TIMEOUT_MS = 180000; // Gemma on Brev often needs >20s; parent feed was updating while the page timed out
 const SIDE_PANEL_PATH = "sidepanel.html";
-const DEMO_URL_RE = /^https?:\/\/(127\.0\.0\.1|localhost):8765\//;
+// Side panel + page guard run on any normal web page (demo or real site).
+const PAGE_URL_RE = /^https?:\/\//;
 
 // Fallback used when chrome.storage has no value yet. Flip to false once
 // teammate A's backend is up, or toggle at runtime from the side panel.
@@ -514,13 +515,13 @@ chrome.runtime.onInstalled.addListener(async () => {
 // Keep the panel armed for demo tabs even if no decision ran on them yet.
 chrome.tabs.onUpdated.addListener((tabId, info, tab) => {
   if (!info || (info.status !== "loading" && info.status !== "complete")) return;
-  if (DEMO_URL_RE.test((tab && tab.url) || "")) ensurePanelEnabled(tabId);
+  if (PAGE_URL_RE.test((tab && tab.url) || "")) ensurePanelEnabled(tabId);
 });
 
 chrome.tabs.onActivated.addListener(async ({ tabId }) => {
   try {
     const tab = await chrome.tabs.get(tabId);
-    if (DEMO_URL_RE.test((tab && tab.url) || "")) ensurePanelEnabled(tabId);
+    if (PAGE_URL_RE.test((tab && tab.url) || "")) ensurePanelEnabled(tabId);
   } catch (_) {
     /* tab vanished */
   }
