@@ -32,6 +32,15 @@ const isMascotCorner = (value: unknown): value is MascotCorner =>
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
+const sanitizeMessage = (value: unknown): string | undefined => {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed.slice(0, 80) : undefined;
+};
+
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);
 
@@ -98,7 +107,14 @@ export function validateMascotCommand(
       return isMascotMood(value.mood) ? { type: "SET_MOOD", mood: value.mood } : null;
     case "POINT_TO_ELEMENT": {
       const target = validateTargetRect(value.target, viewport);
-      return target ? { type: "POINT_TO_ELEMENT", target } : null;
+      const message = sanitizeMessage(value.message);
+      return target
+        ? {
+            type: "POINT_TO_ELEMENT",
+            target,
+            ...(message ? { message } : {}),
+          }
+        : null;
     }
     case "MOVE_TO_CORNER":
       return isMascotCorner(value.corner)

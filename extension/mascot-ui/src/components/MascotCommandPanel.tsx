@@ -13,13 +13,15 @@ type QuadrantTarget = {
   label: string;
   xRatio: number;
   yRatio: number;
+  message: string;
 };
 
 const QUADRANT_TARGETS: QuadrantTarget[] = [
-  { label: "Top left", xRatio: 0.08, yRatio: 0.12 },
-  { label: "Top right", xRatio: 0.68, yRatio: 0.12 },
-  { label: "Bottom left", xRatio: 0.08, yRatio: 0.68 },
-  { label: "Bottom right", xRatio: 0.68, yRatio: 0.68 },
+  { label: "Top left", xRatio: 0.08, yRatio: 0.12, message: "Check this top-left item" },
+  { label: "Top right", xRatio: 0.68, yRatio: 0.12, message: "Look at this top-right item" },
+  { label: "Bottom left", xRatio: 0.08, yRatio: 0.68, message: "Review this bottom-left item" },
+  { label: "Bottom right", xRatio: 0.68, yRatio: 0.68, message: "This bottom-right item needs attention" },
+  { label: "Near mascot", xRatio: 0.78, yRatio: 0.72, message: "Nearby target test" },
 ];
 
 const buildTargetRect = (target: QuadrantTarget): TargetRect => {
@@ -80,12 +82,29 @@ export function MascotCommandPanel(): React.JSX.Element {
               emitMascotCommand({
                 type: "POINT_TO_ELEMENT",
                 target: buildTargetRect(target),
+                message: target.message,
               })
             }
           >
             Point {target.label}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => {
+            QUADRANT_TARGETS.forEach((target, index) => {
+              window.setTimeout(() => {
+                emitMascotCommand({
+                  type: "POINT_TO_ELEMENT",
+                  target: buildTargetRect(target),
+                  message: `Rapid ${target.label}`,
+                });
+              }, index * 120);
+            });
+          }}
+        >
+          Rapid points
+        </button>
       </div>
 
       <div className="mascot-command-group" aria-label="Visibility commands">
