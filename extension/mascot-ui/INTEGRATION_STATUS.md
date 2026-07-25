@@ -3,7 +3,7 @@
 - Owner: Person C.
 - Active branch: `feature/person-c-mascot-ui`.
 - Current phase: Phase 6 complete.
-- Latest commit hash: pending handoff commit.
+- Latest commit hash: `65e1038`.
 - Build status: `npm.cmd run typecheck` passed; `npm.cmd run build` passed.
 - Local preview command: `npm run dev -- --host 127.0.0.1 --port 5173`.
 - Local preview URL: `http://127.0.0.1:5173/`.

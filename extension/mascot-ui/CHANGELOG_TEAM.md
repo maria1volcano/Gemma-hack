@@ -13,6 +13,7 @@
 - Known limitations: extension content script is not wired yet.
 - Person B needs to: inject host/root, load local JS/CSS bundle, calculate DOM rectangles, dispatch events, keep DOM highlight logic outside mascot-ui.
 - Next phase: final extension-core mount/wiring by Person B.
+- Handoff commit: `65e1038`.
 
 ## 2026-07-25 15:56 +01:00 - Phase 5 Target Pointing
 
