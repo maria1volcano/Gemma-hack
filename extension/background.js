@@ -28,7 +28,7 @@ const DEMO_URL_RE = /^https?:\/\/(127\.0\.0\.1|localhost):8765\//;
 
 // Fallback used when chrome.storage has no value yet. Flip to false once
 // teammate A's backend is up, or toggle at runtime from the side panel.
-const MOCK_DEFAULT = true;
+const MOCK_DEFAULT = false; // LIVE Gemma backend by default for the hackathon demo
 
 const AGE = 10;
 

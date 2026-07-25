@@ -55,6 +55,8 @@ class GuardStore:
     def resume(self) -> dict[str, Any]:
         with self._lock:
             self._state["paused"] = False
+            self._state["high_risk_count"] = 0
+            self._state["last_warning"] = None
             return self._state.copy()
 
     def _append_event(self, event_type: str, summary: str) -> dict[str, Any]:
