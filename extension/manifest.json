@@ -1,0 +1,71 @@
+{
+  "manifest_version": 3,
+  "name": "KidGuard",
+  "version": "0.1.0",
+  "description": "A patient internet buddy for kids: explains risks and acts on the page.",
+  "permissions": [
+    "storage",
+    "tabs",
+    "sidePanel",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://127.0.0.1:8765/*",
+    "http://localhost:8000/*",
+    "http://localhost:8765/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://127.0.0.1:8765/*",
+        "http://localhost:8765/*"
+      ],
+      "exclude_matches": [
+        "http://127.0.0.1:8765/frontend/*",
+        "http://localhost:8765/frontend/*",
+        "http://127.0.0.1:8765/demo_sites/index.html",
+        "http://localhost:8765/demo_sites/index.html",
+        "http://127.0.0.1:8765/",
+        "http://localhost:8765/"
+      ],
+      "js": [
+        "content.js",
+        "lib/three.min.js",
+        "lib/GLTFLoader.js",
+        "mascot/mascot-fallback.js",
+        "mascot/mascot-scene.js",
+        "mascot/mascot-controller.js",
+        "mascot/mascot-events.js"
+      ],
+      "css": [
+        "overlay.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_title": "KidGuard - open my buddy"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "lib/*",
+        "assets/*",
+        "mascot/*",
+        "overlay.css"
+      ],
+      "matches": [
+        "http://127.0.0.1:8765/*",
+        "http://localhost:8765/*"
+      ]
+    }
+  ]
+}

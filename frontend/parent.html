@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KidGuard - Parent Dashboard</title>
+<style>
+  :root {
+    --bg: #f6f8fb;
+    --card: #ffffff;
+    --ink: #1f2937;
+    --muted: #6b7280;
+    --line: #e5e7eb;
+    --accent: #3b5bdb;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 28px 20px 64px; }
+
+  header.page {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  header.page h1 {
+    margin: 0;
+    font-size: 28px;
+    letter-spacing: -.01em;
+  }
+  header.page p { margin: 4px 0 0; color: var(--muted); font-size: 15px; }
+  .grow { flex: 1; }
+
+  .statusbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+  }
+  .dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    background: #9ca3af;
+    display: inline-block;
+    flex: none;
+  }
+  .dot.ok { background: #10b981; box-shadow: 0 0 0 4px #10b98126; }
+  .dot.off { background: #f59e0b; box-shadow: 0 0 0 4px #f59e0b26; }
+  .dot.demo { background: #8b5cf6; box-shadow: 0 0 0 4px #8b5cf626; }
+  #statusText { font-weight: 600; font-size: 15px; }
+  .meta { color: var(--muted); font-size: 14px; }
+  .spacer { flex: 1; }
+  button {
+    font: inherit;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    padding: 8px 14px;
+    cursor: pointer;
+  }
+  button:hover { background: #f3f4f6; }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  button.primary:hover { background: #32499f; }
+
+  .notice {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    color: #78350f;
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    font-size: 15px;
+  }
+  .notice strong { display: block; font-size: 16px; margin-bottom: 2px; }
+  .notice code {
+    background: #fef3c7;
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 13px;
+  }
+  .hidden { display: none !important; }
+
+  ul.timeline { list-style: none; margin: 0; padding: 0; }
+  ul.timeline li {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--badge, #9ca3af);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin-bottom: 10px;
+  }
+  .row1 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+  }
+  .time {
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 3px 11px;
+    background: #e5e7eb;
+    color: #374151;
+  }
+  .summary { font-size: 16px; }
+  .url {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--muted);
+    word-break: break-all;
+  }
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    background: var(--card);
+    border: 1px dashed var(--line);
+    border-radius: 14px;
+    padding: 34px 20px;
+  }
+  footer.page {
+    margin-top: 28px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="page">
+    <div class="grow">
+      <h1>KidGuard &mdash; Parent Dashboard</h1>
+      <p>A live view of what KidGuard did while your child was browsing.</p>
+    </div>
+  </header>
+
+  <div class="statusbar">
+    <span class="dot" id="dot"></span>
+    <span id="statusText">Connecting&hellip;</span>
+    <span class="meta" id="countText">0 events</span>
+    <span class="spacer"></span>
+    <button id="demoBtn">Demo data</button>
+    <button id="refreshBtn" class="primary">Refresh now</button>
+  </div>
+
+  <div class="notice hidden" id="notice">
+    <strong>Waiting for backend&hellip;</strong>
+    Can't reach <code>http://127.0.0.1:8000/events</code> yet. Start the API with
+    <code>uvicorn backend.main:app --port 8000</code>, or press <em>Demo data</em> to preview this dashboard.
+    Polling continues automatically.
+  </div>
+
+  <ul class="timeline" id="timeline"></ul>
+  <div class="empty hidden" id="empty">No activity recorded yet. Browse a demo page and events will appear here.</div>
+
+  <footer class="page">
+    KidGuard hackathon demo. Everything runs locally on this computer &mdash; events are read from
+    <code>http://127.0.0.1:8000/events</code> and nothing is uploaded anywhere.
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var API = "http://127.0.0.1:8000/events";
+  var POLL_MS = 2000;
+  var FETCH_TIMEOUT_MS = 4000;
+
+  var dot = document.getElementById("dot");
+  var statusText = document.getElementById("statusText");
+  var countText = document.getElementById("countText");
+  var notice = document.getElementById("notice");
+  var timeline = document.getElementById("timeline");
+  var empty = document.getElementById("empty");
+  var demoBtn = document.getElementById("demoBtn");
+  var refreshBtn = document.getElementById("refreshBtn");
+
+  var demoMode = false;
+  var demoEvents = [];
+  var lastEvents = [];
+  var connected = false;
+  var timer = null;
+
+  var BADGES = {
+    block_page:        { label: "Blocked",     color: "#dc2626", bg: "#fee2e2", fg: "#991b1b" },
+    warn_kid:          { label: "Warned",      color: "#f59e0b", bg: "#fef3c7", fg: "#92400e" },
+    highlight_element: { label: "Highlighted", color: "#0ea5e9", bg: "#e0f2fe", fg: "#075985" },
+    allow_page:        { label: "Allowed",     color: "#10b981", bg: "#d1fae5", fg: "#065f46" },
+    notify_parent:     { label: "Notified",    color: "#8b5cf6", bg: "#ede9fe", fg: "#5b21b6" },
+    suggest_alternative: { label: "Suggested", color: "#14b8a6", bg: "#ccfbf1", fg: "#115e59" },
+    navigate:          { label: "Redirected",  color: "#3b5bdb", bg: "#e0e7ff", fg: "#3730a3" },
+    pause_session:     { label: "Paused",      color: "#6b7280", bg: "#e5e7eb", fg: "#374151" },
+    mascot:            { label: "Mascot",      color: "#ec4899", bg: "#fce7f3", fg: "#9d174d" }
+  };
+
+  function badgeFor(action) {
+    return BADGES[action] || { label: action || "event", color: "#9ca3af", bg: "#e5e7eb", fg: "#374151" };
+  }
+
+  function firstString() {
+    for (var i = 0; i < arguments.length; i++) {
+      var v = arguments[i];
+      if (typeof v === "string" && v.trim() !== "") { return v.trim(); }
+      if (typeof v === "number" && isFinite(v)) { return String(v); }
+    }
+    return "";
+  }
+
+  // Accepts ISO strings, epoch seconds, epoch millis, Date-ish values. Returns ms or null.
+  function toMillis(value) {
+    if (value === null || value === undefined) { return null; }
+    if (typeof value === "number" && isFinite(value)) {
+      return value > 1e11 ? value : value * 1000;
+    }
+    if (typeof value === "string") {
+      var trimmed = value.trim();
+      if (trimmed === "") { return null; }
+      if (/^\d+(\.\d+)?$/.test(trimmed)) { return toMillis(parseFloat(trimmed)); }
+      var parsed = Date.parse(trimmed);
+      return isNaN(parsed) ? null : parsed;
+    }
+    return null;
+  }
+
+  function normalize(raw, index) {
+    var e = (raw && typeof raw === "object") ? raw : {};
+    var ms = toMillis(e.ts);
+    if (ms === null) { ms = toMillis(e.time); }
+    if (ms === null) { ms = toMillis(e.timestamp); }
+    if (ms === null) { ms = toMillis(e.created_at); }
+
+    var action = firstString(e.action, e.tool, e.type, e.event, "event");
+    var summary = firstString(e.summary, e.message, e.detail, e.kid_message, e.reason, e.text);
+    var url = firstString(e.url, e.page_url, e.href);
+
+    if (summary === "") { summary = "(no details provided)"; }
+
+    return { ms: ms, order: index, action: action, summary: summary, url: url };
+  }
+
+  function normalizeList(data) {
+    var arr = Array.isArray(data) ? data
+            : (data && Array.isArray(data.events)) ? data.events
+            : [];
+    var out = [];
+    for (var i = 0; i < arr.length; i++) {
+      try { out.push(normalize(arr[i], i)); } catch (err) { /* skip malformed row */ }
+    }
+    out.sort(function (a, b) {
+      if (a.ms !== null && b.ms !== null && a.ms !== b.ms) { return b.ms - a.ms; }
+      if (a.ms !== null && b.ms === null) { return -1; }
+      if (a.ms === null && b.ms !== null) { return 1; }
+      return b.order - a.order;
+    });
+    return out;
+  }
+
+  function formatTime(ms) {
+    if (ms === null) { return "--:--:--"; }
+    try {
+      return new Date(ms).toLocaleTimeString();
+    } catch (err) {
+      return "--:--:--";
+    }
+  }
+
+  function render(events) {
+    timeline.textContent = "";
+    for (var i = 0; i < events.length; i++) {
+      var ev = events[i];
+      var b = badgeFor(ev.action);
+
+      var li = document.createElement("li");
+      li.style.setProperty("--badge", b.color);
+
+      var row = document.createElement("div");
+      row.className = "row1";
+
+      var t = document.createElement("span");
+      t.className = "time";
+      t.textContent = formatTime(ev.ms);
+      row.appendChild(t);
+
+      var badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = b.label;
+      badge.style.background = b.bg;
+      badge.style.color = b.fg;
+      badge.title = ev.action;
+      row.appendChild(badge);
+
+      li.appendChild(row);
+
+      var s = document.createElement("div");
+      s.className = "summary";
+      s.textContent = ev.summary;
+      li.appendChild(s);
+
+      if (ev.url) {
+        var u = document.createElement("span");
+        u.className = "url";
+        u.textContent = ev.url;
+        li.appendChild(u);
+      }
+
+      timeline.appendChild(li);
+    }
+
+    countText.textContent = events.length === 1 ? "1 event" : events.length + " events";
+    empty.classList.toggle("hidden", events.length > 0 || !connected && !demoMode);
+  }
+
+  function setStatus(state) {
+    dot.className = "dot";
+    if (state === "demo") {
+      dot.classList.add("demo");
+      statusText.textContent = "Demo data (backend ignored)";
+      notice.classList.add("hidden");
+    } else if (state === "connected") {
+      dot.classList.add("ok");
+      statusText.textContent = "Connected to KidGuard backend";
+      notice.classList.add("hidden");
+    } else {
+      dot.classList.add("off");
+      statusText.textContent = "Waiting for backend\u2026";
+      notice.classList.remove("hidden");
+    }
+  }
+
+  function fetchEvents() {
+    if (demoMode) { return Promise.resolve(); }
+
+    var controller = new AbortController();
+    var killer = setTimeout(function () { controller.abort(); }, FETCH_TIMEOUT_MS);
+
+    return fetch(API, { signal: controller.signal, cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) { throw new Error("HTTP " + res.status); }
+        return res.json();
+      })
+      .then(function (data) {
+        connected = true;
+        lastEvents = normalizeList(data);
+        setStatus("connected");
+        render(lastEvents);
+      })
+      .catch(function () {
+        // Unreachable backend is an expected state during the demo, not a crash.
+        connected = false;
+        setStatus("waiting");
+        render([]);
+      })
+      .then(function () {
+        clearTimeout(killer);
+      });
+  }
+
+  function makeDemoEvents() {
+    var now = Date.now();
+    return [
+      {
+        ts: new Date(now - 5000).toISOString(),
+        action: "block_page",
+        summary: "Blocked a fake login page asking for a Star Quest password. Sam was sent back to Classroom.",
+        url: "http://127.0.0.1:8765/demo_sites/phishing.html"
+      },
+      {
+        ts: new Date(now - 62000).toISOString(),
+        action: "warn_kid",
+        summary: "Warned Sam about a prize page promising free game money. Sam chose to leave.",
+        url: "http://127.0.0.1:8765/demo_sites/clickbait.html"
+      },
+      {
+        ts: new Date(now - 240000).toISOString(),
+        action: "allow_page",
+        summary: "Checked the school reading list page and found nothing to worry about.",
+        url: "http://127.0.0.1:8765/demo_sites/ok_school.html"
+      }
+    ];
+  }
+
+  function toggleDemo() {
+    demoMode = !demoMode;
+    if (demoMode) {
+      demoEvents = normalizeList(makeDemoEvents());
+      demoBtn.textContent = "Live data";
+      setStatus("demo");
+      render(demoEvents);
+    } else {
+      demoBtn.textContent = "Demo data";
+      setStatus(connected ? "connected" : "waiting");
+      render(connected ? lastEvents : []);
+      fetchEvents();
+    }
+  }
+
+  demoBtn.addEventListener("click", toggleDemo);
+  refreshBtn.addEventListener("click", function () {
+    if (demoMode) {
+      demoEvents = normalizeList(makeDemoEvents());
+      render(demoEvents);
+    } else {
+      fetchEvents();
+    }
+  });
+
+  setStatus("waiting");
+  render([]);
+  fetchEvents();
+  timer = setInterval(fetchEvents, POLL_MS);
+
+  window.addEventListener("beforeunload", function () { clearInterval(timer); });
+})();
+</script>
+</body>
+</html>

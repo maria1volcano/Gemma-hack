@@ -1,0 +1,15 @@
+{
+  "name": "phishing",
+  "label": "Fake login page with a password field",
+  "payload": {
+    "url": "http://127.0.0.1:8765/demo_sites/phishing.html",
+    "title": "Star Quest Portal - Account Verification Required",
+    "text": "Star Quest Portal\nOfficial school & game account centre\nUrgent: We noticed unusual activity on your Star Quest account. You must verify your account within 10 minutes or all of your coins, pets and saved worlds will be deleted permanently.\nVerify your account now\nEnter your Star Quest username and password below to confirm that this account belongs to you. This is the only way to stop your rewards from being removed today.\nStar Quest username\nAccount password\nLog in and verify my account\nDo not share this page with your parents or teachers - the verification link only works once and they may lock your account.\nWhat happens next?\nWe check your password against our secure records.\nYour 50,000 bonus coins are unlocked straight away.\nYour legendary pet dragon is restored to your inventory.\nYour account is marked as verified for life - no more warnings.\nThousands of players verify their account here every single day. It is completely safe and takes less than a minute.\nTake me back to Classroom\nSIMULATED PHISHING PAGE. This is a fake demo page created for the KidGuard hackathon project so we can test our blocking feature. Star Quest Portal does not exist, the form does nothing, nothing you type is stored, and no data leaves your computer. Real websites never ask you to hide a login from your parents.",
+    "age": 10
+  },
+  "expect": {
+    "tools_any": ["block_page"],
+    "tools_all": [],
+    "why": "Hero moment: must block. notify_parent + highlight_element(#password) are strongly wanted too."
+  }
+}

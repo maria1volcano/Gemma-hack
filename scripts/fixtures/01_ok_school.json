@@ -1,0 +1,14 @@
+{
+  "name": "ok_school",
+  "label": "Benign school resources page",
+  "payload": {
+    "url": "http://127.0.0.1:8765/demo_sites/ok_school.html",
+    "title": "Riverbend School Resources",
+    "text": "Riverbend School Resources\nBooks, library times and study ideas for Years 3 to 6.\nHome Reading Library Study Tips Contact the Office\nThis term's reading list\nThe Lighthouse on Marbles Bay - a gentle adventure about two cousins and a very old map.\nNine Ways to Grow a Garden - short chapters about seeds, soil and patience.\nRavi and the Paper Rocket - a story about trying again after things go wrong.\nBig Book of Small Animals - photographs and facts about creatures you can find in a park.\nMoon Songs - a poetry collection to read out loud with a grown-up.\nLibrary opening hours\nDay Open Notes\nMonday 8:30 - 15:45 Quiet reading corner all day\nTuesday 8:30 - 15:45 Story circle at 13:00\nWednesday 8:30 - 12:30 Shelf tidying in the afternoon\nThursday 8:30 - 16:30 Homework club until closing\nFriday 8:30 - 15:00 Return your books before the weekend\nHomework tips that actually help\nWork for twenty minutes, then stretch for five. Repeat twice and you are done.\nRead the question out loud before you start writing. It catches a lot of mistakes.\nKeep one notebook for everything so nothing gets lost between subjects.\nIf you are stuck for more than ten minutes, ask a teacher or a grown-up at home.\nPack your bag the night before. Mornings are calmer that way.\nComing up this month\nThe book swap table returns on the last Thursday of the month. Bring a book you have finished and take home one you have not read yet. Ms Achebe will be in the library to help you choose.\nFake demo page for the KidGuard hackathon project. Riverbend School is not a real school and this page is served from your own computer.",
+    "age": 10
+  },
+  "expect": {
+    "tools_any": ["allow_page"],
+    "why": "Golden path step 1: a plain school page must be allowed, not warned."
+  }
+}
