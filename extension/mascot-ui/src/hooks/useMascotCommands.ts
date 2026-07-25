@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   KIDGUARD_MASCOT_COMMAND_EVENT,
   type MascotCommand,
@@ -6,20 +6,16 @@ import {
   type MascotMood,
   type TargetRect,
 } from "../contract/mascotCommands";
+import {
+  DEFAULT_MASCOT_MACHINE_STATE,
+  resolveMascotViewState,
+  transitionMascotState,
+  type MascotMachineEffect,
+  type MascotMachineState,
+  type MascotViewState,
+} from "../state/mascotStateMachine";
 
-export type MascotState = {
-  mood: MascotMood;
-  visible: boolean;
-  corner: MascotCorner;
-  target: TargetRect | null;
-};
-
-const DEFAULT_STATE: MascotState = {
-  mood: "idle",
-  visible: true,
-  corner: "bottom-right",
-  target: null,
-};
+export type MascotState = MascotViewState;
 
 const MOODS = ["idle", "thinking", "happy", "worry", "point", "blocked"] as const;
 const CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"] as const;
@@ -96,27 +92,50 @@ const validateCommand = (value: unknown): MascotCommand | null => {
   }
 };
 
-const reduceCommand = (state: MascotState, command: MascotCommand): MascotState => {
-  switch (command.type) {
-    case "SET_MOOD":
-      return { ...state, mood: command.mood };
-    case "POINT_TO_ELEMENT":
-      return { ...state, visible: true, mood: "point", target: command.target };
-    case "MOVE_TO_CORNER":
-      return { ...state, corner: command.corner, target: null };
-    case "SHOW":
-      return { ...state, visible: true };
-    case "HIDE":
-      return { ...state, visible: false };
-    case "RESET":
-      return DEFAULT_STATE;
-  }
-};
-
 export function useMascotCommands(eventTarget: EventTarget = window): MascotState {
-  const [state, setState] = useState<MascotState>(DEFAULT_STATE);
+  const [machineState, setMachineState] = useState<MascotMachineState>(
+    DEFAULT_MASCOT_MACHINE_STATE,
+  );
+  const machineStateRef = useRef<MascotMachineState>(DEFAULT_MASCOT_MACHINE_STATE);
+  const happyTimerRef = useRef<number | null>(null);
+
+  const clearHappyTimer = (): void => {
+    if (happyTimerRef.current !== null) {
+      window.clearTimeout(happyTimerRef.current);
+      happyTimerRef.current = null;
+    }
+  };
 
   useEffect(() => {
+    const applyEffect = (effect: MascotMachineEffect): void => {
+      if (effect.type === "CANCEL_HAPPY_TIMER") {
+        clearHappyTimer();
+        return;
+      }
+
+      if (effect.type === "SCHEDULE_HAPPY_RETURN") {
+        clearHappyTimer();
+        happyTimerRef.current = window.setTimeout(() => {
+          happyTimerRef.current = null;
+          const now = Date.now();
+          const result = transitionMascotState(
+            machineStateRef.current,
+            { type: "HAPPY_ANIMATION_COMPLETE", now },
+            now,
+          );
+          machineStateRef.current = result.state;
+          setMachineState(result.state);
+        }, effect.delayMs);
+      }
+    };
+
+    const applyCommand = (command: MascotCommand): void => {
+      const result = transitionMascotState(machineStateRef.current, command, Date.now());
+      machineStateRef.current = result.state;
+      setMachineState(result.state);
+      applyEffect(result.effect);
+    };
+
     const handleCommand = (event: Event): void => {
       if (!(event instanceof CustomEvent)) {
         return;
@@ -127,15 +146,16 @@ export function useMascotCommands(eventTarget: EventTarget = window): MascotStat
         return;
       }
 
-      setState((current) => reduceCommand(current, command));
+      applyCommand(command);
     };
 
     eventTarget.addEventListener(KIDGUARD_MASCOT_COMMAND_EVENT, handleCommand);
 
     return () => {
       eventTarget.removeEventListener(KIDGUARD_MASCOT_COMMAND_EVENT, handleCommand);
+      clearHappyTimer();
     };
   }, [eventTarget]);
 
-  return state;
+  return resolveMascotViewState(machineState);
 }
