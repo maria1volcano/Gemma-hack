@@ -22,7 +22,7 @@
  */
 
 const BACKEND = "http://127.0.0.1:8000";
-const REQUEST_TIMEOUT_MS = 20000; // the local model is slow
+const REQUEST_TIMEOUT_MS = 180000; // Gemma on Brev often needs >20s; parent feed was updating while the page timed out
 const SIDE_PANEL_PATH = "sidepanel.html";
 const DEMO_URL_RE = /^https?:\/\/(127\.0\.0\.1|localhost):8765\//;
 

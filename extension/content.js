@@ -340,6 +340,8 @@
       box.querySelector(".kg-warn-reason").textContent = reason;
       box.querySelector(".kg-warn-close").addEventListener("click", clearWarn);
       layers.warn.appendChild(box);
+      const spot = defaultMascotSpot();
+      emitMascot("worry", spot.x, spot.y, null);
     },
 
     block_page(args) {
@@ -808,6 +810,8 @@
     if (!force && signature === lastSentText && payload.url === lastSentUrl) return;
 
     inFlight = true;
+    ensureRoot();
+    toast("Gemma is thinking... this can take up to a minute.", 55000);
     try {
       let res = await send({ type: "KG_DECIDE", payload: payload });
       // The service worker may have been asleep or mid-restart: one cheap retry.
@@ -823,12 +827,22 @@
         ensureRoot();
         const spot = defaultMascotSpot();
         emitMascot("idle", spot.x, spot.y, null);
-        if (res && res.error === "backend_unreachable") toast("My buddy is offline right now.");
+        if (res && res.error === "backend_unreachable") {
+          toast("My buddy timed out or is offline. Keep LIVE mode and wait, then refresh.");
+        }
         // Happens when the extension is reloaded while the page stays open.
         if (res && res.error === "extension_context") toast("KidGuard was updated - refresh this page.", 6000);
         return;
       }
       runToolCalls(res.tool_calls, true);
+      // If Gemma forgot move_mascot, still react from the primary action.
+      const tools = Array.isArray(res.tool_calls) ? res.tool_calls.map((c) => c && c.tool) : [];
+      if (!tools.includes("move_mascot")) {
+        const spot = defaultMascotSpot();
+        if (tools.includes("block_page") || tools.includes("warn_kid")) emitMascot("worry", spot.x, spot.y, null);
+        else if (tools.includes("allow_page") || tools.includes("highlight_element")) emitMascot("happy", spot.x, spot.y, null);
+      }
+      if (res.kid_message) toast(String(res.kid_message).slice(0, 120), 5000);
     } finally {
       inFlight = false;
       if (pendingCheck) {
