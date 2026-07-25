@@ -1,5 +1,17 @@
 # Person C Team Change Log
 
+## 2026-07-25 - Typed Mascot Event Bridge
+
+- Added a dedicated `kidguard:mascot-command` event bridge outside the Three.js
+  scene.
+- Moved command payload validation into pure TypeScript bridge functions.
+- Safely ignore malformed commands and clamp `POINT_TO_ELEMENT` target
+  rectangles to the current viewport instead of trusting page-provided bounds.
+- Kept command translation flowing through the mascot state machine.
+- Added a local development command panel for all supported commands.
+- Gated the development panel behind Vite dev mode so production builds can
+  remove it.
+
 ## 2026-07-25 - Deterministic Mascot State Machine
 
 - Added a pure TypeScript mascot state machine for `idle`, `thinking`,
