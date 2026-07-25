@@ -54,7 +54,13 @@ export function MascotCommandPanel(): React.JSX.Element {
           <button
             key={mood}
             type="button"
-            onClick={() => emitMascotCommand({ type: "SET_MOOD", mood })}
+            onClick={() =>
+              emitMascotCommand(
+                mood === "idle"
+                  ? { type: "SET_MOOD", mood }
+                  : { type: "SET_MOOD", mood, message: `${mood} mood` },
+              )
+            }
           >
             {mood}
           </button>

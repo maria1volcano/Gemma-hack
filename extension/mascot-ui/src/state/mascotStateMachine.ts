@@ -14,7 +14,7 @@ export type MascotPersistentState = {
   visible: boolean;
   corner: MascotCorner;
   target: TargetRect | null;
-  pointMessage: string | null;
+  coachingMessage: string | null;
 };
 
 export type MascotAnimationState = {
@@ -31,7 +31,7 @@ export type MascotViewState = {
   visible: boolean;
   corner: MascotCorner;
   target: TargetRect | null;
-  pointMessage: string | null;
+  coachingMessage: string | null;
 };
 
 export type MascotMachineEffect =
@@ -55,7 +55,7 @@ const DEFAULT_PERSISTENT_STATE: MascotPersistentState = {
   visible: true,
   corner: "bottom-right",
   target: null,
-  pointMessage: null,
+  coachingMessage: null,
 };
 
 export const DEFAULT_MASCOT_MACHINE_STATE: MascotMachineState = {
@@ -142,7 +142,7 @@ export function transitionMascotState(
               ...state.persistent,
               mood: "idle",
               target: null,
-              pointMessage: null,
+              coachingMessage: input.message ?? null,
             },
             animation: {
               happyUntil: now + HAPPY_ANIMATION_MS,
@@ -166,7 +166,7 @@ export function transitionMascotState(
             ...state.persistent,
             mood: input.mood,
             target: null,
-            pointMessage: null,
+            coachingMessage: input.message ?? null,
           },
           animation: {
             happyUntil: null,
@@ -183,7 +183,7 @@ export function transitionMascotState(
             corner: choosePointingCorner(input.target),
             visible: true,
             target: input.target,
-            pointMessage: input.message ?? "Look here",
+            coachingMessage: input.message ?? "Look here",
           },
           animation: {
             happyUntil: null,
@@ -198,7 +198,7 @@ export function transitionMascotState(
           ...state.persistent,
           corner: input.corner,
           target: null,
-          pointMessage: null,
+          coachingMessage: null,
         },
       });
     case "SHOW":
@@ -208,7 +208,7 @@ export function transitionMascotState(
           ...state.persistent,
           visible: true,
           target: null,
-          pointMessage: null,
+          coachingMessage: null,
         },
       });
     case "HIDE":
@@ -218,7 +218,7 @@ export function transitionMascotState(
           ...state.persistent,
           visible: false,
           target: null,
-          pointMessage: null,
+          coachingMessage: null,
         },
       });
     case "RESET":
@@ -247,7 +247,7 @@ export function transitionMascotState(
         persistent: {
           ...state.persistent,
           target: null,
-          pointMessage: null,
+          coachingMessage: null,
         },
       });
   }

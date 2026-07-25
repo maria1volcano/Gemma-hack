@@ -1,5 +1,18 @@
 # Person C Change Log
 
+## 2026-07-25 16:15 +01:00 - Phase 6 Integration Handoff
+
+- Status: complete.
+- Summary: documented the mascot integration surface for extension-core merge.
+- Files changed: `INTEGRATE.md`, command contract, event bridge, state machine, overlay, dev panel, status docs.
+- Behavior added: optional sanitized coaching messages on `SET_MOOD`.
+- Public contract impact: event and command names remain frozen; `SET_MOOD` now accepts optional `message?: string`.
+- How to test: run local preview and dispatch `kidguard:mascot-command` examples from `INTEGRATE.md`.
+- Validation results: `npm.cmd run typecheck` passed; `npm.cmd run build` passed; local preview responded HTTP 200.
+- Known limitations: extension content script is not wired yet.
+- Teammate notes: Person B owns host injection and bundle loading; Person C owns only `extension/mascot-ui/**`.
+- Next phase: final extension-core mount/wiring by Person B.
+
 ## 2026-07-25 15:56 +01:00 - Phase 5 Target Pointing
 
 - Status: complete.
