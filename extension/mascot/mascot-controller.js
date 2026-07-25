@@ -368,8 +368,10 @@
       }
       bubbleText.textContent = str;
       bubble.classList.add("kgm-on");
-      // One forced layout read here (not per frame) so the bubble can be placed.
+      // One forced layout read here (not per frame) so the bubble can be placed,
+      // then a few cheap re-reads in case mascot.css had not landed yet.
       applyLayout();
+      settle();
       var life = typeof ms === "number" ? ms : MSG_MS;
       if (life > 0) {
         timers.msg = setTimeout(hideBubble, life);
