@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Star Quest Portal - Account Verification Required</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Verdana, sans-serif;
+    background: #0b1a33;
+    background-image:
+      radial-gradient(circle at 20% 10%, #1d3f7a 0, transparent 45%),
+      radial-gradient(circle at 80% 85%, #38246b 0, transparent 45%);
+    color: #e8eefb;
+    font-size: 18px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  .topbar {
+    background: #12294d;
+    border-bottom: 3px solid #2f5fa8;
+    padding: 14px 24px;
+  }
+  .topbar .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo {
+    font-size: 26px;
+    font-weight: bold;
+    color: #ffd166;
+    letter-spacing: .02em;
+  }
+  .topbar .spacer { flex: 1; }
+  .topbar small { color: #9fb6da; }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+  .alert {
+    background: #7a1f1f;
+    border: 3px solid #ff6b6b;
+    border-radius: 16px;
+    padding: 14px 20px;
+    margin: 24px auto 0;
+    max-width: 900px;
+    font-size: 18px;
+  }
+  .alert strong { color: #ffd166; }
+  .layout {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    gap: 28px;
+    padding: 26px 24px 60px;
+    max-width: 900px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+  h1 { font-size: 34px; margin: 6px 0 12px; color: #ffd166; }
+  .card {
+    background: #14294a;
+    border: 2px solid #2f5fa8;
+    border-radius: 22px;
+    padding: 24px 26px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, .3);
+  }
+  label {
+    display: block;
+    margin: 16px 0 6px;
+    font-size: 16px;
+    color: #bcd0ef;
+  }
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 13px 14px;
+    font-size: 18px;
+    border-radius: 12px;
+    border: 2px solid #3d6fbc;
+    background: #0d1e39;
+    color: #e8eefb;
+  }
+  input:focus { outline: 3px solid #ffd166; }
+  button#submit {
+    margin-top: 22px;
+    width: 100%;
+    background: linear-gradient(100deg, #ffd166, #ffa62b);
+    color: #2a1a00;
+    border: none;
+    border-radius: 14px;
+    padding: 15px 18px;
+    font-size: 21px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .hint { font-size: 14px; color: #93a9cc; margin-top: 12px; }
+  ul { padding-left: 22px; }
+  li { margin-bottom: 8px; }
+  .countdown { color: #ff9b9b; font-weight: bold; }
+  #safe-link {
+    display: inline-block;
+    margin-top: 18px;
+    background: #1f7a4d;
+    color: #ffffff;
+    border-radius: 999px;
+    padding: 11px 22px;
+    text-decoration: none;
+    font-size: 17px;
+    border: 2px solid #48c98a;
+  }
+  #safe-link:hover { background: #269960; }
+  footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px 46px;
+    font-size: 14px;
+    color: #93a9cc;
+    border-top: 1px solid #2f5fa8;
+    padding-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="wrap">
+    <!-- COPY: replaceable by N -->
+    <span class="logo">&#11088; Star Quest Portal</span>
+    <span class="spacer"></span>
+    <small>Official school &amp; game account centre</small>
+  </div>
+</div>
+
+<!-- COPY: replaceable by N -->
+<div class="alert">
+  <strong>Urgent:</strong> We noticed unusual activity on your Star Quest account. You must verify your account within <span class="countdown">10 minutes</span> or all of your coins, pets and saved worlds will be deleted permanently.
+</div>
+
+<div class="layout">
+  <div class="card">
+    <!-- COPY: replaceable by N -->
+    <h1>Verify your account now</h1>
+    <!-- COPY: replaceable by N -->
+    <p>Enter your Star Quest username and password below to confirm that this account belongs to you. This is the only way to stop your rewards from being removed today.</p>
+
+    <form action="#" onsubmit="return false">
+      <label for="username">Star Quest username</label>
+      <input id="username" name="username" type="text" autocomplete="off" placeholder="e.g. StarPilot2015">
+
+      <label for="password">Account password</label>
+      <input id="password" name="password" type="password" autocomplete="off" placeholder="Enter your password">
+
+      <button id="submit" type="submit">Log in and verify my account</button>
+      <!-- COPY: replaceable by N -->
+      <p class="hint">Do not share this page with your parents or teachers &mdash; the verification link only works once and they may lock your account.</p>
+    </form>
+  </div>
+
+  <div class="card">
+    <!-- COPY: replaceable by N -->
+    <h1>What happens next?</h1>
+    <!-- COPY: replaceable by N -->
+    <ul>
+      <li>We check your password against our secure records.</li>
+      <li>Your 50,000 bonus coins are unlocked straight away.</li>
+      <li>Your legendary pet dragon is restored to your inventory.</li>
+      <li>Your account is marked as verified for life &mdash; no more warnings.</li>
+    </ul>
+    <!-- COPY: replaceable by N -->
+    <p>Thousands of players verify their account here every single day. It is completely safe and takes less than a minute.</p>
+
+    <!-- COPY: replaceable by N -->
+    <a id="safe-link" href="classroom.html">Take me back to Classroom</a>
+  </div>
+</div>
+
+<footer>
+  SIMULATED PHISHING PAGE. This is a fake demo page created for the KidGuard hackathon project so we can test our blocking feature. Star Quest Portal does not exist, the form does nothing, nothing you type is stored, and no data leaves your computer. Real websites never ask you to hide a login from your parents.
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "classroom",
+  "label": "Allowlisted classroom page (safe destination)",
+  "payload": {
+    "url": "http://127.0.0.1:8765/demo_sites/classroom.html",
+    "title": "Riverbend Classroom",
+    "text": "Riverbend Classroom\nA safe place to keep learning. You are always welcome here.\nClassroom School Resources All Demo Pages\nWelcome back, Sam!\nNice choice coming here. You have three things to finish this week, and none of them take very long. Start with whichever one looks the most fun - that counts as a real strategy.\nYour assignments\nDue Tuesday\n1. Maths: Fraction Pizza\nDraw four pizzas and slice them into halves, thirds, quarters and eighths. Colour in the slices your family would eat and write the fraction underneath.\nDue Thursday\n2. Reading: Three Pages and a Question\nRead three pages of any book you like, then write one question you would ask the main character if you met them.\nFinished\n3. Science: Cloud Watch\nLook out of the window twice a day for three days and sketch the clouds you see. Nice work - you handed this in early.\nNeed a hand?\nAsk your teacher in class, or tell a grown-up at home which part is confusing. Getting stuck is normal and asking early makes it much quicker to fix.\nFake demo page for the KidGuard hackathon project. Riverbend Classroom is not a real service; it is the safe destination our extension redirects to during the demo.",
+    "age": 10
+  },
+  "expect": {
+    "tools_any": ["allow_page"],
+    "why": "This is the page block_page sends the kid to - it must never be blocked or warned."
+  }
+}

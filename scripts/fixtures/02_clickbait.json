@@ -1,0 +1,14 @@
+{
+  "name": "clickbait",
+  "label": "Prize / free-robux clickbait page (no password field)",
+  "payload": {
+    "url": "http://127.0.0.1:8765/demo_sites/clickbait.html",
+    "title": "MEGA PRIZE ZONE - You Won't BELIEVE This!!!",
+    "text": "ONLY 3 SPOTS LEFT 14,982 KIDS ALREADY CLAIMED THEIRS DO NOT CLOSE THIS PAGE YOUR PRIZE EXPIRES SOON\nYou won't BELIEVE what happened next!!!\n9.8/10 from 41,203 happy winners!\nFREE ROBUX GENERATOR\nGet 100,000 FREE ROBUX in under 30 seconds!!\nNO SURVEY! NO WAITING! WORKS EVERY TIME!\nCLICK HERE 100 TIMES TO WIN\nGENERATE MY ROBUX NOW\nHurry! Your prize disappears in:\n00:04:59\nIf this timer reaches zero your 100,000 ROBUX will be given to ANOTHER KID FOREVER. Do not let that happen. Keep clicking!\nCongratulations! You are today's lucky visitor #1,000,000\nA brand new gaming laptop, a golden pet dragon and unlimited game money are waiting for YOU. Just tap the big green button and spin the wheel 3 times. Trust us, this is 100% real and definitely not a trick!\nSPIN THE MEGA WHEEL\nCLAIM MY FREE LAPTOP\nReal comments from real people\nxX_DragonSlayer_Xx: OMG it actually worked I got 500000 robux in 2 minutes!!!!!\ncoolkid2013: i clicked 100 times and a laptop arrived at my house the same day, thank you MEGA PRIZE ZONE\nMum_of_Three: I was suspicious but my son now has unlimited game money. Amazing!\nanonymous_winner: DO NOT TELL ANYONE ABOUT THIS SITE, they will shut it down!!!\nFake demo page for the KidGuard hackathon project. This is a made-up clickbait page used to test our warning system. There are no prizes, no giveaways and nothing here is real.",
+    "age": 10
+  },
+  "expect": {
+    "tools_any": ["warn_kid"],
+    "why": "Golden path step 2 must WARN (not block): the demo shows the warn banner here."
+  }
+}

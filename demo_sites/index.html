@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KidGuard Demo Sites</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --paper: #f4f7ff;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 20px 64px;
+    font-family: "Trebuchet MS", "Segoe UI", Verdana, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 18px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; }
+  h1 {
+    font-size: 44px;
+    margin: 0 0 8px;
+    color: #3b3bd6;
+  }
+  .sub { font-size: 20px; color: #4b5563; margin: 0 0 32px; }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  a.card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: #fff;
+    border-radius: 22px;
+    padding: 22px 24px;
+    border: 3px solid transparent;
+    box-shadow: 0 6px 18px rgba(31, 41, 55, 0.08);
+    transition: transform .12s ease;
+  }
+  a.card:hover { transform: translateY(-3px); }
+  a.card h2 { margin: 0 0 6px; font-size: 24px; }
+  a.card p { margin: 0; font-size: 16px; color: #4b5563; }
+  .tag {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 3px 12px;
+    margin-bottom: 10px;
+  }
+  .safe { border-color: #34d399; }
+  .safe .tag { background: #d1fae5; color: #065f46; }
+  .bait { border-color: #fbbf24; }
+  .bait .tag { background: #fef3c7; color: #92400e; }
+  .risk { border-color: #f87171; }
+  .risk .tag { background: #fee2e2; color: #991b1b; }
+  .home { border-color: #60a5fa; }
+  .home .tag { background: #dbeafe; color: #1e40af; }
+  footer {
+    margin-top: 44px;
+    font-size: 14px;
+    color: #6b7280;
+    border-top: 2px dashed #cbd5e1;
+    padding-top: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- COPY: replaceable by N -->
+  <h1>KidGuard Demo Sites</h1>
+  <!-- COPY: replaceable by N -->
+  <p class="sub">Four pretend web pages we use to show what KidGuard does. Pick one and watch the extension react.</p>
+
+  <div class="cards">
+    <!-- COPY: replaceable by N -->
+    <a class="card safe" href="ok_school.html">
+      <span class="tag">Safe</span>
+      <h2>Riverbend School Resources</h2>
+      <p>A calm page with a reading list, library hours and homework tips. KidGuard should leave it alone.</p>
+    </a>
+
+    <!-- COPY: replaceable by N -->
+    <a class="card bait" href="clickbait.html">
+      <span class="tag">Clickbait</span>
+      <h2>MEGA PRIZE ZONE</h2>
+      <p>Loud headlines, fake countdowns and impossible prizes. KidGuard should warn the kid.</p>
+    </a>
+
+    <!-- COPY: replaceable by N -->
+    <a class="card risk" href="phishing.html">
+      <span class="tag">Simulated scam</span>
+      <h2>Star Quest Portal</h2>
+      <p>A pretend sign-in page that asks for secret account details. KidGuard should block it and tell a grown-up.</p>
+    </a>
+
+    <!-- COPY: replaceable by N -->
+    <a class="card home" href="classroom.html">
+      <span class="tag">Allowlisted</span>
+      <h2>Riverbend Classroom</h2>
+      <p>The friendly place KidGuard sends kids when something is unsafe.</p>
+    </a>
+  </div>
+
+  <footer>
+    Fake demo pages built for the KidGuard hackathon project. Nothing here is a real website and no data is ever sent anywhere.
+  </footer>
+</div>
+</body>
+</html>
