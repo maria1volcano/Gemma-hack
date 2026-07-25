@@ -31,7 +31,7 @@ Person C does not own:
 
 Currently works:
 
-- standalone local preview with `npm run dev -- --host 127.0.0.1 --port 5173`
+- standalone local preview
 - procedural placeholder mascot
 - moods: `idle`, `thinking`, `happy`, `worry`, `point`, `blocked`
 - corner movement
@@ -40,13 +40,6 @@ Currently works:
 - coaching bubble for command messages
 - local development controls in Vite dev mode
 - production build
-
-Current production output:
-
-- output directory: `extension/mascot-ui/dist`
-- JavaScript: `dist/assets/mascot.js`
-- CSS: `dist/assets/mascot.css`
-- filenames are deterministic and unhashed
 
 Extension integration is not complete yet.
 
@@ -160,24 +153,28 @@ window.dispatchEvent(
 ### POINT_TO_ELEMENT
 
 ```js
-const rect = element.getBoundingClientRect();
+const element = document.querySelector("#safe-option");
 
-window.dispatchEvent(
-  new CustomEvent("kidguard:mascot-command", {
-    detail: {
-      type: "POINT_TO_ELEMENT",
-      target: {
-        x: rect.x,
-        y: rect.y,
-        width: rect.width,
-        height: rect.height,
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
+if (element) {
+  const rect = element.getBoundingClientRect();
+
+  window.dispatchEvent(
+    new CustomEvent("kidguard:mascot-command", {
+      detail: {
+        type: "POINT_TO_ELEMENT",
+        target: {
+          x: rect.x,
+          y: rect.y,
+          width: rect.width,
+          height: rect.height,
+          viewportWidth: window.innerWidth,
+          viewportHeight: window.innerHeight,
+        },
+        message: "Try this safer option.",
       },
-      message: "Look here before clicking.",
-    },
-  }),
-);
+    }),
+  );
+}
 ```
 
 ### MOVE_TO_CORNER
@@ -205,10 +202,92 @@ window.dispatchEvent(
 );
 ```
 
-## Merge Notes
+## Build Instructions
 
-- Use `dist/assets/mascot.js` and `dist/assets/mascot.css` from `npm run build`.
-- Do not call Chrome APIs from R3F components.
-- Do not dispatch unvalidated page values directly from untrusted page scripts.
-- The bridge clamps target coordinates to the current viewport.
-- Overlay, target outline, and guide line use `pointer-events: none` so the page remains clickable and scrollable.
+Real commands from `package.json`:
+
+```bash
+cd extension/mascot-ui
+npm install
+npm run dev
+npm run build
+```
+
+Production output:
+
+- output directory: `extension/mascot-ui/dist`
+- JavaScript: `dist/assets/mascot.js`
+- CSS: `dist/assets/mascot.css`
+- filename hashing: disabled for JS/CSS entry assets
+- `index.html`: generated and useful for standalone preview; extension-core may not need it if mounting the bundle manually
+- assets: local extension files only
+- build paths: Vite default absolute paths from `/assets/...` in `dist/index.html`; Person B should load extension files with `chrome.runtime.getURL(...)` during final wiring if needed
+
+## Integration Entry Point
+
+- React bootstrap entry file: `src/main.tsx`
+- expected root element: `<div id="root"></div>`
+- overlay behavior: `MascotOverlay` renders a fixed viewport overlay with `pointer-events: none`
+- Shadow DOM: optional, not currently required or implemented
+- production build shape: standalone Vite page plus deterministic JS/CSS assets
+- limitation: the bundle does not currently expose a custom mount function; Person B still needs integration wiring to create a host/root and load or adapt the React entry in the real extension
+
+## Loading Strategy Recommendation
+
+Smallest safe integration recommendation:
+
+1. Build with `npm run build`.
+2. Add `dist/assets/mascot.js` and `dist/assets/mascot.css` as extension-local files.
+3. Inject a host div with child `<div id="root"></div>` or adapt `src/main.tsx` in a separate integration commit.
+4. Load CSS and JS from extension-local URLs, using `chrome.runtime.getURL(...)` from extension-core code if needed.
+5. Dispatch `kidguard:mascot-command` events from content-script logic.
+
+This loading strategy is a recommendation, not implemented in `extension/content.js` yet.
+
+## Smoke-Test Checklist
+
+- mascot bundle loads
+- `SET_MOOD` works
+- `POINT_TO_ELEMENT` works
+- target remains clickable
+- mascot relocates away from target
+- `RESET` works
+- page remains scrollable
+- `SHOW`/`HIDE` works
+- no backend is required for standalone preview
+- no remote assets are required
+
+## Conflict-Prone Files
+
+Person C deliberately did not edit:
+
+- `extension/manifest.json`
+- `extension/content.js`
+- `extension/background.js`
+- root README
+- root dependency files
+- `backend/**`
+
+Manual extension integration should happen in a separate integration commit.
+
+## Known Limitations
+
+- placeholder mascot visuals
+- no final Japanese-inspired mascot
+- no GLB
+- no ShaderGradient
+- no Liquid Logo material
+- no final content-script mounting
+- no direct backend connection
+- no final extension packaging
+- current production bundle is large because Three.js and React Three Fiber are bundled into `mascot.js`
+- production build is a standalone page unless Person B performs extra extension wiring
+
+## Recommended Merge Order
+
+1. merge backend/Gemma branch
+2. merge extension-core branch
+3. merge `feature/person-c-mascot-ui`
+4. create a separate integration branch or integration commit
+5. wire host, bundle loading, and events
+6. run the full extension demo before merging to main
