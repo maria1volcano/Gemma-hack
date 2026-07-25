@@ -45,6 +45,18 @@ def _agent_error(error: Exception) -> HTTPException:
     return HTTPException(status_code=502, detail=str(error))
 
 
+def _extension_tool_calls(tool_calls: list[dict]) -> list[dict]:
+    """Map internal {name, arguments} to the extension contract {tool, args}."""
+    normalised: list[dict] = []
+    for call in tool_calls:
+        name = call.get("tool") or call.get("name")
+        args = call.get("args") if "args" in call else call.get("arguments", {})
+        if not isinstance(name, str):
+            continue
+        normalised.append({"tool": name, "args": args if isinstance(args, dict) else {}})
+    return normalised
+
+
 @app.post("/decide")
 async def decide(request: DecideRequest) -> dict:
     try:
@@ -62,7 +74,7 @@ async def decide(request: DecideRequest) -> dict:
     return {
         "action": result["action"],
         "kid_message": state["last_kid_message"],
-        "tool_calls": result["tool_calls"],
+        "tool_calls": _extension_tool_calls(result["tool_calls"]),
         "events": store.events(),
     }
 
@@ -74,10 +86,12 @@ async def coach(request: CoachRequest) -> dict:
     except (OllamaUnavailableError, OllamaResponseError) as exc:
         raise _agent_error(exc) from exc
 
+    kid_message = store.state()["last_kid_message"]
     return {
         "action": result["action"],
-        "kid_message": store.state()["last_kid_message"],
-        "tool_calls": result["tool_calls"],
+        "reply": kid_message,
+        "kid_message": kid_message,
+        "tool_calls": _extension_tool_calls(result["tool_calls"]),
     }
 
 
