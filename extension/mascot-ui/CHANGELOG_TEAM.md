@@ -12,6 +12,7 @@
 - Known limitations: extension content script is not wired yet.
 - Teammate notes: Person B owns host injection and bundle loading; Person C owns only `extension/mascot-ui/**`.
 - Next phase: final extension-core mount/wiring by Person B.
+- Phase 6 commit: `fa90ac7`.
 
 ## 2026-07-25 15:56 +01:00 - Phase 5 Target Pointing
 

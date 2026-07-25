@@ -3,7 +3,7 @@
 - Owner: Person C.
 - Phase: Phase 6 complete.
 - Branch: `feature/person-c-mascot-ui`.
-- Latest feature commit: pending Phase 6 commit.
+- Latest feature commit: `fa90ac7`.
 - Build status: `npm.cmd run typecheck` passed; `npm.cmd run build` passed.
 - Local preview command: `npm run dev -- --host 127.0.0.1 --port 5173`.
 - Local preview URL: `http://127.0.0.1:5173/`.
